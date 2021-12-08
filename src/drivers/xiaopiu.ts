@@ -11,7 +11,7 @@ import {
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
-export class MastergoDriver extends TestDriver {
+export class XiaopiuDriver extends TestDriver {
   private _webToken: string
 
   constructor(args: TestDriverCtorArgs & { cookie: string }) {
@@ -19,29 +19,57 @@ export class MastergoDriver extends TestDriver {
     this._webToken = args.cookie
   }
 
+  private async _closeTipsModal({
+    modalName,
+    timeout = 2500,
+  }: {
+    modalName?: string
+    timeout?: number
+  }) {
+    const page = await this.getMainPage()
+
+    const $btnCloseModal = await page.waitForSelector('#popupCloseBtn', {
+      timeout,
+    })
+
+    await $btnCloseModal?.click()
+  }
+
   async makeReady() {
     const page = await this.getMainPage()
 
-    await page.goto('https://mastergo.com/')
+    await page.goto('https://ds.js.design/')
 
-    return page.evaluate(function setToken(token: string) {
+    return page.evaluate(function setToken(token) {
       document.cookie = token
     }, this._webToken)
   }
 
   async setZoom(zoom: number) {
     const page = await this.getMainPage()
+    const $btnZoom = await page.$('._31E46')
 
-    // TODO: only support 100%
-    if (zoom !== 1) {
-      return
+    await $btnZoom?.click()
+
+    const $zoomInput = await page.$('.PyIrq')
+
+    await $zoomInput?.type(`${Math.floor(zoom * 100)}`)
+    await page.keyboard.press('Enter')
+  }
+
+  async waitForCanvasReady(url: string, { zoom }: { zoom?: number }) {
+    await this.testCanvasFirstPainted(url)
+    await this._closeTipsModal({ modalName: 'theme' }).catch(() =>
+      Promise.resolve()
+    )
+    await this.waitForCanvasLazyPaintResource()
+    await this._closeTipsModal({ modalName: 'font', timeout: 5000 }).catch(() =>
+      Promise.resolve()
+    )
+
+    if (typeof zoom === 'number') {
+      await this.setZoom(zoom)
     }
-
-    const keyboard = page.keyboard
-
-    await keyboard.down('ControlLeft')
-    await keyboard.press('0')
-    await keyboard.up('ControlLeft')
   }
 
   async testCanvasFirstPainted(url: string): Promise<CanvasFirstPaintedResult> {
@@ -51,8 +79,8 @@ export class MastergoDriver extends TestDriver {
     const startTime = performance.now()
 
     await page.goto(url, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('.skeleton_screen_editpage')
-    await page.waitForSelector('.skeleton_screen_editpage', { hidden: true })
+    await page.waitForSelector('.loading')
+    await page.waitForSelector('.loading', { hidden: true })
 
     return {
       costSecond: (performance.now() - startTime) / 1000,
@@ -71,12 +99,12 @@ export class MastergoDriver extends TestDriver {
     await keyboard.press('A')
     await keyboard.up('ControlLeft')
 
-    let x = pageSettings.width / 2
-    let y = pageSettings.height / 2
+    const x = pageSettings.width / 2
+    const y = pageSettings.height / 2
 
     await page.tracing.start({
       screenshots: true,
-      path: 'performances/mastergo-move-select-all.json',
+      path: 'performances/xiaopiu-move-select-all.json',
     })
     await mousemoveInRetanglePath(mouse, {
       start: { x, y },
@@ -89,7 +117,7 @@ export class MastergoDriver extends TestDriver {
   async testMoveForSelectShapes(url: string, options: MoveSelectAllOptions) {
     await this.waitForCanvasReady(url, { zoom: options.zoom })
 
-    const canvasBoundingRect = await this.getCanvasBoundingRect('#canvas')
+    const canvasBoundingRect = await this.getCanvasBoundingRect('#editCanvas')
 
     if (!canvasBoundingRect) {
       console.error('canvas boundings not found!')
@@ -99,8 +127,8 @@ export class MastergoDriver extends TestDriver {
 
     const page = await this.getMainPage()
     const mouse = page.mouse
-    const rulerWidth = 0
-    const rulerHeight = 0
+    const rulerWidth = 60
+    const rulerHeight = 40
     const startX = canvasBoundingRect.left + rulerWidth
     const startY = canvasBoundingRect.top + rulerHeight
     const endX = startX + canvasBoundingRect.width
@@ -108,7 +136,7 @@ export class MastergoDriver extends TestDriver {
 
     await page.tracing.start({
       screenshots: true,
-      path: 'performances/mastergo-move-for-select-shapes.json',
+      path: 'performances/xiaopiu-move-for-select-shapes.json',
     })
     await mousemoveInDiagonalPath(mouse, {
       start: { x: startX, y: startY },
@@ -125,9 +153,9 @@ export class MastergoDriver extends TestDriver {
 
     await page.tracing.start({
       screenshots: true,
-      path: 'performances/mastergo-wheel-zoom.json',
+      path: 'performances/xiaopiu-wheel-zoom.json',
     })
-    await this.zoomCanvasByMockWheel('#canvas')
+    await this.zoomCanvasByMockWheel('#canvasEditDiv')
     await page.tracing.stop()
   }
 }

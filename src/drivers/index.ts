@@ -1,2 +1,6 @@
+export * from './driver'
 export * from './soulma'
 export * from './mastergo'
+export * from './xiaopiu'
+export * from './figma'
+export * from './pixso'

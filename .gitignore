@@ -1,2 +1,5 @@
 node_modules/
 dist/
+performances/
+.test-url.json
+.auth.json

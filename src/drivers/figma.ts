@@ -11,38 +11,36 @@ import {
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
-export class MastergoDriver extends TestDriver {
-  private _webToken: string
+interface Account {
+  name: string
+  password: string
+}
 
-  constructor(args: TestDriverCtorArgs & { cookie: string }) {
+export class FigmaDriver extends TestDriver {
+  private _account: Account
+
+  constructor(args: TestDriverCtorArgs & Account) {
     super(args)
-    this._webToken = args.cookie
+    this._account = {
+      name: args.name,
+      password: args.password,
+    }
   }
 
   async makeReady() {
     const page = await this.getMainPage()
 
-    await page.goto('https://mastergo.com/')
+    // TODO: 暂时无法得知figma是如何使用token来鉴权的. 这里直接走登录流程
+    await page.goto('https://www.figma.com/login')
+    await page.type('input[name="email"]', this._account.name)
+    await page.type('input[name="password"]', this._account.password)
 
-    return page.evaluate(function setToken(token: string) {
-      document.cookie = token
-    }, this._webToken)
+    const $btnLogin = await page.$('button[type="submit"]')
+    await $btnLogin?.click()
+    await page.waitForNavigation()
   }
 
-  async setZoom(zoom: number) {
-    const page = await this.getMainPage()
-
-    // TODO: only support 100%
-    if (zoom !== 1) {
-      return
-    }
-
-    const keyboard = page.keyboard
-
-    await keyboard.down('ControlLeft')
-    await keyboard.press('0')
-    await keyboard.up('ControlLeft')
-  }
+  async setZoom(zoom: number) {}
 
   async testCanvasFirstPainted(url: string): Promise<CanvasFirstPaintedResult> {
     await this.ready()
@@ -50,9 +48,9 @@ export class MastergoDriver extends TestDriver {
     const page = await this.getMainPage()
     const startTime = performance.now()
 
-    await page.goto(url, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('.skeleton_screen_editpage')
-    await page.waitForSelector('.skeleton_screen_editpage', { hidden: true })
+    await page.goto(url)
+    await page.waitForSelector('.progress_bar--outer--3EVoD')
+    await page.waitForSelector('.progress_bar--outer--3EVoD', { hidden: true })
 
     return {
       costSecond: (performance.now() - startTime) / 1000,
@@ -60,23 +58,24 @@ export class MastergoDriver extends TestDriver {
   }
 
   async testMoveSelectAll(url: string, options: MoveSelectAllOptions) {
-    await this.waitForCanvasReady(url, { zoom: options.zoom })
+    await this.waitForCanvasReady(url, {
+      waitResourceSecond: 15000, // 因为翻墙的原因, 所以等待久一点
+    })
 
     const page = await this.getMainPage()
     const keyboard = page.keyboard
     const mouse = page.mouse
     const pageSettings = this.options.pageSettings
+    const x = pageSettings.width / 2
+    const y = pageSettings.height / 2
 
     await keyboard.down('ControlLeft')
     await keyboard.press('A')
     await keyboard.up('ControlLeft')
 
-    let x = pageSettings.width / 2
-    let y = pageSettings.height / 2
-
     await page.tracing.start({
       screenshots: true,
-      path: 'performances/mastergo-move-select-all.json',
+      path: 'performances/figma-move-select-all.json',
     })
     await mousemoveInRetanglePath(mouse, {
       start: { x, y },
@@ -87,9 +86,11 @@ export class MastergoDriver extends TestDriver {
   }
 
   async testMoveForSelectShapes(url: string, options: MoveSelectAllOptions) {
-    await this.waitForCanvasReady(url, { zoom: options.zoom })
+    await this.waitForCanvasReady(url, {
+      waitResourceSecond: 15000, // 因为翻墙的原因, 所以等待久一点
+    })
 
-    const canvasBoundingRect = await this.getCanvasBoundingRect('#canvas')
+    const canvasBoundingRect = await this.getCanvasBoundingRect('.view canvas')
 
     if (!canvasBoundingRect) {
       console.error('canvas boundings not found!')
@@ -101,14 +102,15 @@ export class MastergoDriver extends TestDriver {
     const mouse = page.mouse
     const rulerWidth = 0
     const rulerHeight = 0
-    const startX = canvasBoundingRect.left + rulerWidth
+    const startX =
+      canvasBoundingRect.left + rulerWidth + /** figma左侧可直接拖动 */ +5
     const startY = canvasBoundingRect.top + rulerHeight
     const endX = startX + canvasBoundingRect.width
     const endY = startY + canvasBoundingRect.height
 
     await page.tracing.start({
       screenshots: true,
-      path: 'performances/mastergo-move-for-select-shapes.json',
+      path: 'performances/figma-move-for-select-shapes.json',
     })
     await mousemoveInDiagonalPath(mouse, {
       start: { x: startX, y: startY },
@@ -125,9 +127,9 @@ export class MastergoDriver extends TestDriver {
 
     await page.tracing.start({
       screenshots: true,
-      path: 'performances/mastergo-wheel-zoom.json',
+      path: 'performances/figma-wheel-zoom.json',
     })
-    await this.zoomCanvasByMockWheel('#canvas')
+    await this.zoomCanvasByMockWheel()
     await page.tracing.stop()
   }
 }
