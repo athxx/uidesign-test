@@ -188,33 +188,53 @@ async function run(filename: string, options: ProgramOptions) {
   const testingCases = options.tests
   const authData = authStorage.get()
 
-  const soulma = new SoulmaDriver({
-    browser,
-    token: authData.soulma.token,
-    options: testingOptions,
-  })
-  const mastergo = new MastergoDriver({
-    browser,
-    cookie: authData.mastergo.cookie,
-    options: testingOptions,
-  })
-  const xiaopiu = new XiaopiuDriver({
-    browser,
-    cookie: authData.xiaopiu.cookie,
-    options: testingOptions,
-  })
-  const figma = new FigmaDriver({
-    browser,
-    options: testingOptions,
-    name: authData.figma.account.name,
-    password: authData.figma.account.password,
-  })
-  const pixso = new PixsoDriver({
-    browser,
-    options: testingOptions,
-    name: authData.pixso.account.name,
-    password: authData.pixso.account.password,
-  })
+  let soulma: SoulmaDriver | undefined
+  let mastergo: MastergoDriver | undefined
+  let xiaopiu: XiaopiuDriver | undefined
+  let figma: FigmaDriver | undefined
+  let pixso: PixsoDriver | undefined
+
+  if (authData.soulma) {
+    soulma = new SoulmaDriver({
+      browser,
+      token: authData.soulma.token,
+      options: testingOptions,
+    })
+  }
+
+  if (authData.mastergo) {
+    mastergo = new MastergoDriver({
+      browser,
+      cookie: authData.mastergo.cookie,
+      options: testingOptions,
+    })
+  }
+
+  if (authData.xiaopiu) {
+    xiaopiu = new XiaopiuDriver({
+      browser,
+      cookie: authData.xiaopiu.cookie,
+      options: testingOptions,
+    })
+  }
+
+  if (authData.figma) {
+    figma = new FigmaDriver({
+      browser,
+      options: testingOptions,
+      name: authData.figma.account.name,
+      password: authData.figma.account.password,
+    })
+  }
+
+  if (authData.pixso) {
+    pixso = new PixsoDriver({
+      browser,
+      options: testingOptions,
+      name: authData.pixso.account.name,
+      password: authData.pixso.account.password,
+    })
+  }
 
   const productsMap = {
     soulma,
