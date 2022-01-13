@@ -97,9 +97,9 @@ async function configAuth(products: Product[]) {
   }
 
   if (!authData.mastergo && products.includes(Product.mastergo)) {
-    const cookie = await authConfirmer.askForMastergo()
+    const { name, password } = await authConfirmer.askForMastergo()
 
-    authStorage.setAuthData('mastergo', { cookie })
+    authStorage.setAuthData('mastergo', { account: { name, password } })
   }
 
   if (!authData.xiaopiu && products.includes(Product.xiaopiu)) {
@@ -131,9 +131,9 @@ async function configEditAuth(products: Product[]) {
   }
 
   if (products.includes(Product.mastergo)) {
-    const cookie = await authConfirmer.askForMastergo()
+    const { name, password } = await authConfirmer.askForMastergo()
 
-    authStorage.setAuthData('mastergo', { cookie })
+    authStorage.setAuthData('mastergo', { account: { name, password } })
   }
 
   if (products.includes(Product.xiaopiu)) {
@@ -205,7 +205,8 @@ async function run(filename: string, options: ProgramOptions) {
   if (authData.mastergo) {
     mastergo = new MastergoDriver({
       browser,
-      cookie: authData.mastergo.cookie,
+      name: authData.mastergo.account.name,
+      password: authData.mastergo.account.password,
       options: testingOptions,
     })
   }

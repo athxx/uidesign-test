@@ -16,7 +16,10 @@ interface AuthData {
     token: string
   }
   mastergo: {
-    cookie: string
+    account: {
+      name: string
+      password: string
+    }
   }
   xiaopiu: {
     cookie: string
@@ -71,14 +74,23 @@ export const authConfirmer = {
     return value
   },
 
-  async askForMastergo(): Promise<string> {
-    const { value } = await prompts({
+  async askForMastergo(): Promise<{ name: string; password: string }> {
+    const { name } = await prompts({
       type: 'text',
-      name: 'value',
-      message: `Input cookie for mastergo(check "gfsessionid" in cookie):`,
+      name: 'name',
+      message: `Input username for mastergo:`,
     })
 
-    return value
+    const { password } = await prompts({
+      type: 'password',
+      name: 'password',
+      message: 'Input password for mastergo:',
+    })
+
+    return {
+      name,
+      password,
+    }
   },
 
   async askForXiaopiu(): Promise<string> {

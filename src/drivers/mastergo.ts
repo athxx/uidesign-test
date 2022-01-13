@@ -11,12 +11,20 @@ import {
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
-export class MastergoDriver extends TestDriver {
-  private _webToken: string
+interface Account {
+  name: string
+  password: string
+}
 
-  constructor(args: TestDriverCtorArgs & { cookie: string }) {
+export class MastergoDriver extends TestDriver {
+  private _account: Account
+
+  constructor(args: TestDriverCtorArgs & Account) {
     super(args)
-    this._webToken = args.cookie
+    this._account = {
+      name: args.name,
+      password: args.password,
+    }
   }
 
   async makeReady() {
@@ -24,9 +32,25 @@ export class MastergoDriver extends TestDriver {
 
     await page.goto('https://mastergo.com/')
 
-    return page.evaluate(function setToken(token: string) {
-      document.cookie = token
-    }, this._webToken)
+    const $btnLogin = await page.$('.login')
+
+    await $btnLogin?.click()
+
+    const $modalLogin = await page.waitForSelector(
+      '.login-register-container',
+      {
+        visible: true,
+      }
+    )
+
+    const $inputName = await $modalLogin?.$('.text-input')
+    const $inputPassword = await $modalLogin?.$('.login-password .text-input')
+    const $btnStart = await $modalLogin?.$('.light-btn')
+
+    await $inputName?.type(this._account.name)
+    await $inputPassword?.type(this._account.password)
+    await $btnStart?.click()
+    await page.waitForNavigation()
   }
 
   async setZoom(zoom: number) {
