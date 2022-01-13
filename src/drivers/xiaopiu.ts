@@ -10,13 +10,22 @@ import {
   mousemoveInRetanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
+import { sleep } from '../utils/process'
+
+interface Account {
+  name: string
+  password: string
+}
 
 export class XiaopiuDriver extends TestDriver {
-  private _webToken: string
+  private _account: Account
 
-  constructor(args: TestDriverCtorArgs & { cookie: string }) {
+  constructor(args: TestDriverCtorArgs & Account) {
     super(args)
-    this._webToken = args.cookie
+    this._account = {
+      name: args.name,
+      password: args.password,
+    }
   }
 
   private async _closeTipsModal({
@@ -38,11 +47,27 @@ export class XiaopiuDriver extends TestDriver {
   async makeReady() {
     const page = await this.getMainPage()
 
-    await page.goto('https://ds.js.design/')
+    await page.goto('https://js.design/login')
 
-    return page.evaluate(function setToken(token) {
-      document.cookie = token
-    }, this._webToken)
+    const $btnTabs = await page.$$('.tab-item')
+    const $btnUseAccount = $btnTabs?.[$btnTabs.length - 1]
+
+    await $btnUseAccount?.click()
+
+    const $inputName = await page.$('.input-item input')
+
+    await $inputName?.type(this._account.name)
+    await sleep(100)
+
+    const $inputPassword = await page.$('.input-item+.input-item input')
+
+    await $inputPassword?.type(this._account.password)
+    await sleep(100)
+
+    const $btnLogin = await page.$('.action-btn')
+
+    await $btnLogin?.click()
+    await page.waitForNavigation()
   }
 
   async setZoom(zoom: number) {

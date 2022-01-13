@@ -93,14 +93,22 @@ export const authConfirmer = {
     }
   },
 
-  async askForXiaopiu(): Promise<string> {
-    const { value } = await prompts({
+  async askForXiaopiu(): Promise<{ name: string; password: string }> {
+    const { name } = await prompts({
       type: 'text',
-      name: 'value',
-      message: `Input cookie for xiaopiu(check "xiaopiuDesignSess" in cookie):`,
+      name: 'name',
+      message: `Input username for xiaopiu:`,
+    })
+    const { password } = await prompts({
+      type: 'password',
+      name: 'password',
+      message: 'Input password for xiaopiu:',
     })
 
-    return value
+    return {
+      name,
+      password,
+    }
   },
 
   async askForFigma(): Promise<{ name: string; password: string }> {

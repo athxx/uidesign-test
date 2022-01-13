@@ -103,9 +103,9 @@ async function configAuth(products: Product[]) {
   }
 
   if (!authData.xiaopiu && products.includes(Product.xiaopiu)) {
-    const cookie = await authConfirmer.askForXiaopiu()
+    const { name, password } = await authConfirmer.askForXiaopiu()
 
-    authStorage.setAuthData('xiaopiu', { cookie })
+    authStorage.setAuthData('xiaopiu', { account: { name, password } })
   }
 
   if (!authData.figma && products.includes(Product.figma)) {
@@ -137,9 +137,9 @@ async function configEditAuth(products: Product[]) {
   }
 
   if (products.includes(Product.xiaopiu)) {
-    const cookie = await authConfirmer.askForXiaopiu()
+    const { name, password } = await authConfirmer.askForXiaopiu()
 
-    authStorage.setAuthData('xiaopiu', { cookie })
+    authStorage.setAuthData('xiaopiu', { account: { name, password } })
   }
 
   if (products.includes(Product.figma)) {
@@ -214,7 +214,8 @@ async function run(filename: string, options: ProgramOptions) {
   if (authData.xiaopiu) {
     xiaopiu = new XiaopiuDriver({
       browser,
-      cookie: authData.xiaopiu.cookie,
+      name: authData.xiaopiu.account.name,
+      password: authData.xiaopiu.account.password,
       options: testingOptions,
     })
   }
