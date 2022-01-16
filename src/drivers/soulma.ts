@@ -73,16 +73,17 @@ export class SoulmaDriver extends TestDriver {
     let x = pageSettings.width / 2
     let y = pageSettings.height / 2 + 100
 
-    await page.tracing.start({
+    const testFn = () =>
+      mousemoveInRetanglePath(mouse, {
+        start: { x, y },
+        steps: options.mousemoveSteps,
+        delta: options.mousemoveDelta,
+      })
+
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/soulma-move-select-all.json',
+      filename: 'soulma-move-select-all.json',
     })
-    await mousemoveInRetanglePath(mouse, {
-      start: { x, y },
-      steps: options.mousemoveSteps,
-      delta: options.mousemoveDelta,
-    })
-    await page.tracing.stop()
   }
 
   async testMoveForSelectShapes(url: string, options: MoveSelectAllOptions) {
@@ -104,29 +105,28 @@ export class SoulmaDriver extends TestDriver {
     const startY = canvasBoundingRect.top + rulerHeight
     const endX = startX + canvasBoundingRect.width
     const endY = startY + canvasBoundingRect.height
+    const testFn = () =>
+      mousemoveInDiagonalPath(mouse, {
+        start: { x: startX, y: startY },
+        end: { x: endX, y: endY },
+        delta: options.mousemoveDelta,
+      })
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/soulma-move-for-select-shapes.json',
+      filename: 'soulma-move-for-select-shapes.json',
     })
-    await mousemoveInDiagonalPath(mouse, {
-      start: { x: startX, y: startY },
-      end: { x: endX, y: endY },
-      delta: options.mousemoveDelta,
-    })
-    await page.tracing.stop()
   }
 
   async testWheelZoom(url: string) {
     await this.waitForCanvasReady(url, {})
 
     const page = await this.getMainPage()
+    const testFn = () => this.zoomCanvasByMockWheel('.slm-view')
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/soulma-wheel-zoom.json',
+      filename: 'soulma-wheel-zoom.json',
     })
-    await this.zoomCanvasByMockWheel('.slm-view')
-    await page.tracing.stop()
   }
 }
