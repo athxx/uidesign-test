@@ -1,7 +1,10 @@
-import { Browser, Page } from 'puppeteer'
+import * as fs from 'fs'
+import * as path from 'path'
+import { Browser, Page, TracingOptions } from 'puppeteer'
 
 import { sleep } from '../utils/process'
 import { mouseWheelZoom } from '../utils/mouse'
+import { getDatetimeInfo } from '../utils/datetime'
 
 export interface DriverOptions {
   pageSettings: {
@@ -24,6 +27,24 @@ export interface MoveSelectAllOptions {
 }
 
 let mainPage: Page | undefined
+
+const fileSaver = (function () {
+  const dateInfo = getDatetimeInfo()
+  const _performancesDir = path.resolve(
+    __dirname,
+    `../../performances/${dateInfo.year}_${dateInfo.month}_${dateInfo.day}_${dateInfo.hour}_${dateInfo.minute}`
+  )
+
+  return {
+    get performancesDir() {
+      if (!fs.existsSync(_performancesDir)) {
+        fs.mkdirSync(_performancesDir)
+      }
+
+      return _performancesDir
+    },
+  }
+})()
 
 export abstract class TestDriver {
   private _readyPromise: Promise<void> | undefined
@@ -202,5 +223,18 @@ export abstract class TestDriver {
         clientY: pageSettings.height / 2,
       }
     )
+  }
+
+  async recordPerformance(
+    page: Page,
+    fn: () => Promise<void>,
+    options: TracingOptions & { filename: string }
+  ) {
+    await page.tracing.start({
+      screenshots: options.screenshots,
+      path: options.path || `${fileSaver.performancesDir}/${options.filename}`,
+    })
+    await fn()
+    await page.tracing.stop()
   }
 }

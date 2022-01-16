@@ -10,6 +10,7 @@ import {
   mousemoveInRetanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
+import { sleep } from '../utils/process'
 
 interface Account {
   name: string
@@ -89,16 +90,17 @@ export class PixsoDriver extends TestDriver {
     await keyboard.press('A')
     await keyboard.up('ControlLeft')
 
-    await page.tracing.start({
+    const testFn = () =>
+      mousemoveInRetanglePath(mouse, {
+        start: { x, y },
+        steps: options.mousemoveSteps,
+        delta: options.mousemoveDelta,
+      })
+
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/pixso-move-select-all.json',
+      filename: 'pixso-move-select-all.json',
     })
-    await mousemoveInRetanglePath(mouse, {
-      start: { x, y },
-      steps: options.mousemoveSteps,
-      delta: options.mousemoveDelta,
-    })
-    await page.tracing.stop()
   }
 
   async testMoveForSelectShapes(
@@ -124,29 +126,28 @@ export class PixsoDriver extends TestDriver {
     const startY = canvasBoundingRect.top + rulerHeight
     const endX = startX + canvasBoundingRect.width
     const endY = startY + canvasBoundingRect.height
+    const testFn = () =>
+      mousemoveInDiagonalPath(mouse, {
+        start: { x: startX, y: startY },
+        end: { x: endX, y: endY },
+        delta: options.mousemoveDelta,
+      })
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/pixso-move-for-select-shapes.json',
+      filename: 'pixso-move-for-select-shapes.json',
     })
-    await mousemoveInDiagonalPath(mouse, {
-      start: { x: startX, y: startY },
-      end: { x: endX, y: endY },
-      delta: options.mousemoveDelta,
-    })
-    await page.tracing.stop()
   }
 
   async testWheelZoom(url: string): Promise<void> {
     await this.waitForCanvasReady(url, {})
 
     const page = await this.getMainPage()
+    const testFn = () => this.zoomCanvasByMockWheel()
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/pixso-wheel-zoom.json',
+      filename: 'pixso-wheel-zoom.json',
     })
-    await this.zoomCanvasByMockWheel()
-    await page.tracing.stop()
   }
 }

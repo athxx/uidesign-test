@@ -126,17 +126,17 @@ export class XiaopiuDriver extends TestDriver {
 
     const x = pageSettings.width / 2
     const y = pageSettings.height / 2
+    const testFn = () =>
+      mousemoveInRetanglePath(mouse, {
+        start: { x, y },
+        steps: options.mousemoveSteps,
+        delta: options.mousemoveDelta,
+      })
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/xiaopiu-move-select-all.json',
+      filename: 'xiaopiu-move-select-all.json',
     })
-    await mousemoveInRetanglePath(mouse, {
-      start: { x, y },
-      steps: options.mousemoveSteps,
-      delta: options.mousemoveDelta,
-    })
-    await page.tracing.stop()
   }
 
   async testMoveForSelectShapes(url: string, options: MoveSelectAllOptions) {
@@ -158,29 +158,28 @@ export class XiaopiuDriver extends TestDriver {
     const startY = canvasBoundingRect.top + rulerHeight
     const endX = startX + canvasBoundingRect.width
     const endY = startY + canvasBoundingRect.height
+    const testFn = () =>
+      mousemoveInDiagonalPath(mouse, {
+        start: { x: startX, y: startY },
+        end: { x: endX, y: endY },
+        delta: options.mousemoveDelta,
+      })
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/xiaopiu-move-for-select-shapes.json',
+      filename: 'xiaopiu-move-for-select-shapes.json',
     })
-    await mousemoveInDiagonalPath(mouse, {
-      start: { x: startX, y: startY },
-      end: { x: endX, y: endY },
-      delta: options.mousemoveDelta,
-    })
-    await page.tracing.stop()
   }
 
   async testWheelZoom(url: string) {
     await this.waitForCanvasReady(url, {})
 
     const page = await this.getMainPage()
+    const testFn = () => this.zoomCanvasByMockWheel('#canvasEditDiv')
 
-    await page.tracing.start({
+    await this.recordPerformance(page, testFn, {
       screenshots: true,
-      path: 'performances/xiaopiu-wheel-zoom.json',
+      filename: 'xiaopiu-wheel-zoom.json',
     })
-    await this.zoomCanvasByMockWheel('#canvasEditDiv')
-    await page.tracing.stop()
   }
 }
