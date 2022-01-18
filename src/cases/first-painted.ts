@@ -23,7 +23,7 @@ async function getMedianForTasks(
 
 export async function testCanvasFirstPainted(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso }: DriverMap
+  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap
 ) {
   // options?: { runTimes: number }
   const file = getTestFile(filename)
@@ -68,5 +68,11 @@ export async function testCanvasFirstPainted(
     const { costSecond } = await pixso.testCanvasFirstPainted(file.pixso)
 
     console.log('pixso.testCanvasFirstPainted cost:', costSecond)
+  }
+
+  if (local) {
+    const { costSecond } = await local.testCanvasFirstPainted(file.local)
+
+    console.log('local.testCanvasFirstPainted cost:', costSecond)
   }
 }

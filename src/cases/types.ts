@@ -12,4 +12,5 @@ export type DriverMap = Partial<{
   xiaopiu: XiaopiuDriver
   figma: FigmaDriver
   pixso: PixsoDriver
+  local: SoulmaDriver
 }>

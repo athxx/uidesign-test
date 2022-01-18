@@ -6,6 +6,7 @@ export function getTestFile(name: string): {
   xiaopiu: string
   figma: string
   pixso: string
+  local: string
 } {
   const data = urlStorage.get(name)
 

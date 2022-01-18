@@ -14,15 +14,35 @@ import {
 export class SoulmaDriver extends TestDriver {
   private _webToken: string
 
-  constructor(args: TestDriverCtorArgs & { token: string }) {
+  private _host: string
+
+  private _protocol: string
+
+  private _port: number
+
+  private _filePrefix: string
+
+  constructor(
+    args: TestDriverCtorArgs & {
+      token: string
+      host?: string
+      protocol?: string
+      port?: number
+      filePrefix?: string
+    }
+  ) {
     super(args)
     this._webToken = args.token
+    this._host = args.host || 'abc.xk.design'
+    this._protocol = args.protocol || 'https:'
+    this._port = args.port || 80
+    this._filePrefix = args.filePrefix || 'soulma'
   }
 
   async makeReady() {
     const page = await this.getMainPage()
 
-    await page.goto('https://abc.xk.design/')
+    await page.goto(`${this._protocol}//${this._host}:${this._port}/`)
 
     return page.evaluate(function setToken(token: string) {
       window.localStorage.setItem('XK-Token', token)
@@ -82,7 +102,7 @@ export class SoulmaDriver extends TestDriver {
 
     await this.recordPerformance(page, testFn, {
       screenshots: true,
-      filename: 'soulma-move-select-all.json',
+      filename: `${this._filePrefix}-move-select-all.json`,
     })
   }
 
@@ -114,7 +134,7 @@ export class SoulmaDriver extends TestDriver {
 
     await this.recordPerformance(page, testFn, {
       screenshots: true,
-      filename: 'soulma-move-for-select-shapes.json',
+      filename: `${this._filePrefix}-move-for-select-shapes.json`,
     })
   }
 
@@ -126,7 +146,7 @@ export class SoulmaDriver extends TestDriver {
 
     await this.recordPerformance(page, testFn, {
       screenshots: true,
-      filename: 'soulma-wheel-zoom.json',
+      filename: `${this._filePrefix}-wheel-zoom.json`,
     })
   }
 }

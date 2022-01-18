@@ -28,12 +28,14 @@ export const urlConfirmer = {
     const xiaopiuUrl = await this.askForUrl(Product.xiaopiu)
     const figmaUrl = await this.askForUrl(Product.figma)
     const pixsoUrl = await this.askForUrl(Product.pixso)
+    const localUrl = await this.askForUrl(Product.local)
 
     info[Product.soulma] = soulmaUrl.value
     info[Product.mastergo] = mastergoUrl.value
     info[Product.xiaopiu] = xiaopiuUrl.value
     info[Product.figma] = figmaUrl.value
     info[Product.pixso] = pixsoUrl.value
+    info[Product.local] = localUrl.value
 
     return info
   },

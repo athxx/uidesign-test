@@ -4,7 +4,7 @@ import { getTestFile } from '../utils/resources'
 
 export async function testMoveSelectAll(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso }: DriverMap,
+  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap,
   options: MoveSelectAllOptions = { mousemoveDelta: 10, mousemoveSteps: 30 }
 ) {
   const file = getTestFile(filename)
@@ -37,11 +37,16 @@ export async function testMoveSelectAll(
     await pixso.testMoveSelectAll(file.pixso, options)
     console.log('pixso.testMoveSelectAll done!')
   }
+
+  if (local) {
+    await local.testMoveSelectAll(file.local, options)
+    console.log('local.testMoveSelectAll done!')
+  }
 }
 
 export async function testMoveForSelectShapes(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso }: DriverMap,
+  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap,
   options: MoveSelectAllOptions = { mousemoveDelta: 10, mousemoveSteps: 0 }
 ) {
   const file = getTestFile(filename)
@@ -73,5 +78,10 @@ export async function testMoveForSelectShapes(
   if (pixso) {
     await pixso.testMoveForSelectShapes(file.pixso, options)
     console.log('pixso.testMoveForSelectShapes done!')
+  }
+
+  if (local) {
+    await local.testMoveForSelectShapes(file.local, options)
+    console.log('local.testMoveForSelectShapes done!')
   }
 }

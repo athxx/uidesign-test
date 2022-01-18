@@ -41,6 +41,7 @@ const products = [
   Product.xiaopiu,
   Product.figma,
   Product.pixso,
+  Product.local,
 ]
 const filterProducts = (str: string): Product[] => {
   return str
@@ -120,6 +121,12 @@ async function configAuth(products: Product[]) {
     authStorage.setAuthData('pixso', { account: { name, password } })
   }
 
+  if (!authData.local && products.includes(Product.local)) {
+    const token = await authConfirmer.askForLocal()
+
+    authStorage.setAuthData('local', { token })
+  }
+
   return authStorage.write()
 }
 
@@ -154,25 +161,32 @@ async function configEditAuth(products: Product[]) {
     authStorage.setAuthData('pixso', { account: { name, password } })
   }
 
+  if (products.includes(Product.local)) {
+    const token = await authConfirmer.askForLocal()
+
+    authStorage.setAuthData('local', { token })
+  }
+
   return authStorage.write()
 }
 
 async function run(filename: string, options: ProgramOptions) {
-  await configTestUrl(filename)
-
   if (options.editUrl) {
     const products = filterProducts(options.editUrl)
 
     await configEditUrl(filename, products)
+    return
   }
-
-  await configAuth(filterProducts(options.products))
 
   if (options.editAuth) {
     const products = filterProducts(options.editAuth)
 
     await configEditAuth(products)
+    return
   }
+
+  await configTestUrl(filename)
+  await configAuth(filterProducts(options.products))
 
   const browser = await puppeteer.launch({
     headless: options.tests === TestCase.firstPainted,
@@ -193,6 +207,7 @@ async function run(filename: string, options: ProgramOptions) {
   let xiaopiu: XiaopiuDriver | undefined
   let figma: FigmaDriver | undefined
   let pixso: PixsoDriver | undefined
+  let local: SoulmaDriver | undefined
 
   if (authData.soulma) {
     soulma = new SoulmaDriver({
@@ -238,12 +253,25 @@ async function run(filename: string, options: ProgramOptions) {
     })
   }
 
+  if (authData.local) {
+    local = new SoulmaDriver({
+      browser,
+      token: authData.local.token,
+      options: testingOptions,
+      host: 'localhost',
+      protocol: 'http:',
+      port: 8080,
+      filePrefix: 'local',
+    })
+  }
+
   const productsMap = {
     soulma,
     mastergo,
     xiaopiu,
     figma,
     pixso,
+    local,
   }
   const drivers = filterProducts(options.products).reduce((acc, curr) => {
     const fileUrl = urlStorage.get(filename)[curr]

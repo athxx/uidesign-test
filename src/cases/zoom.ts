@@ -3,7 +3,7 @@ import { getTestFile } from '../utils/resources'
 
 export async function testWheelZoom(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso }: DriverMap
+  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap
 ) {
   const file = getTestFile(filename)
 
@@ -34,5 +34,10 @@ export async function testWheelZoom(
   if (pixso) {
     await pixso.testWheelZoom(file.pixso)
     console.log('pixso.testWheelZoom done!')
+  }
+
+  if (local) {
+    await local.testWheelZoom(file.local)
+    console.log('local.testWheelZoom done!')
   }
 }

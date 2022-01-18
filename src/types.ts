@@ -11,4 +11,5 @@ export enum Product {
   xiaopiu = 'xiaopiu',
   figma = 'figma',
   pixso = 'pixso',
+  local = 'local',
 }

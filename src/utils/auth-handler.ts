@@ -36,6 +36,9 @@ interface AuthData {
       password: string
     }
   }
+  local: {
+    token: string
+  }
   [key: string]: any
 }
 
@@ -145,5 +148,15 @@ export const authConfirmer = {
       name,
       password,
     }
+  },
+
+  async askForLocal(): Promise<string> {
+    const { value } = await prompts({
+      type: 'text',
+      name: 'value',
+      message: `Input token for local(check "XK-Token" in localStorage):`,
+    })
+
+    return value
   },
 }
