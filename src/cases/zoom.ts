@@ -1,5 +1,23 @@
 import { DriverMap } from './types'
 import { getTestFile } from '../utils/resources'
+import { TestDriver } from '../drivers/index'
+
+async function runTestWheelZoom({
+  driver,
+  url,
+  testName,
+}: {
+  driver: TestDriver
+  url: string
+  testName: string
+}) {
+  try {
+    await driver.testWheelZoom(url)
+    console.log(`${testName}.testWheelZoom done!`)
+  } catch (e: any) {
+    console.log(`${testName}.testWheelZoom error:`, e.message)
+  }
+}
 
 export async function testWheelZoom(
   filename: string,
@@ -8,36 +26,50 @@ export async function testWheelZoom(
   const file = getTestFile(filename)
 
   if (soulma) {
-    await soulma.testWheelZoom(file.soulma)
-    console.log('soulma.testWheelZoom done!')
+    await runTestWheelZoom({
+      driver: soulma,
+      url: file.soulma,
+      testName: 'soulma',
+    })
   }
 
   if (mastergo) {
-    await mastergo.testWheelZoom(file.mastergo)
-    console.log('mastergo.testWheelZoom done!')
+    await runTestWheelZoom({
+      driver: mastergo,
+      url: file.mastergo,
+      testName: 'mastergo',
+    })
   }
 
   if (xiaopiu) {
-    await xiaopiu.testWheelZoom(file.xiaopiu)
-    console.log('xiaopiu.testWheelZoom done!')
+    await runTestWheelZoom({
+      driver: xiaopiu,
+      url: file.xiaopiu,
+      testName: 'xiaopiu',
+    })
   }
 
   if (figma) {
-    try {
-      await figma.testWheelZoom(file.figma)
-      console.log('figma.testWheelZoom done!')
-    } catch (e: any) {
-      console.log(`figma.testWheelZoom with error: ${e.message}`)
-    }
+    await runTestWheelZoom({
+      driver: figma,
+      url: file.figma,
+      testName: 'figma',
+    })
   }
 
   if (pixso) {
-    await pixso.testWheelZoom(file.pixso)
-    console.log('pixso.testWheelZoom done!')
+    await runTestWheelZoom({
+      driver: pixso,
+      url: file.pixso,
+      testName: 'pixso',
+    })
   }
 
   if (local) {
-    await local.testWheelZoom(file.local)
-    console.log('local.testWheelZoom done!')
+    await runTestWheelZoom({
+      driver: local,
+      url: file.local,
+      testName: 'local',
+    })
   }
 }

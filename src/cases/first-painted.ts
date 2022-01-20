@@ -1,6 +1,6 @@
 import { DriverMap } from './types'
 import { getTestFile } from '../utils/resources'
-import { CanvasFirstPaintedResult } from '../drivers/index'
+import { CanvasFirstPaintedResult, TestDriver } from '../drivers/index'
 
 async function getMedianForTasks(
   runTimes: number,
@@ -21,6 +21,28 @@ async function getMedianForTasks(
   return times[Math.ceil(times.length / 2)]
 }
 
+async function runFirstPainted({
+  driver,
+  url,
+  testName,
+  navigateTimes = 10,
+}: {
+  driver: TestDriver
+  url: string
+  testName: string
+  navigateTimes?: number
+}) {
+  try {
+    const costSecond = await getMedianForTasks(navigateTimes, () =>
+      driver.testCanvasFirstPainted(url)
+    )
+
+    console.log(`${testName}.testCanvasFirstPainted cost:`, costSecond)
+  } catch (e: any) {
+    console.log(`${testName}.testCanvasFirstPainted with error: ${e.message}`)
+  }
+}
+
 export async function testCanvasFirstPainted(
   filename: string,
   { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap
@@ -29,50 +51,50 @@ export async function testCanvasFirstPainted(
   const file = getTestFile(filename)
 
   if (soulma) {
-    const costSecond = await getMedianForTasks(10, () =>
-      soulma.testCanvasFirstPainted(file.soulma)
-    )
-
-    console.log('soulma.testCanvasFirstPainted cost:', costSecond)
+    await runFirstPainted({
+      driver: soulma,
+      url: file.soulma,
+      testName: 'soulma',
+    })
   }
 
   if (mastergo) {
-    const costSecond = await getMedianForTasks(10, () =>
-      mastergo.testCanvasFirstPainted(file.mastergo)
-    )
-
-    console.log('mastergo.testCanvasFirstPainted cost:', costSecond)
+    await runFirstPainted({
+      driver: mastergo,
+      url: file.mastergo,
+      testName: 'mastergo',
+    })
   }
 
   if (xiaopiu) {
-    const costSecond = await getMedianForTasks(10, () =>
-      xiaopiu.testCanvasFirstPainted(file.xiaopiu)
-    )
-
-    console.log('xiaopiu.testCanvasFirstPainted cost:', costSecond)
+    await runFirstPainted({
+      driver: xiaopiu,
+      url: file.xiaopiu,
+      testName: 'xiaopiu',
+    })
   }
 
   if (figma) {
-    try {
-      const costSecond = await getMedianForTasks(10, () =>
-        figma.testCanvasFirstPainted(file.figma)
-      )
-
-      console.log('figma.testCanvasFirstPainted cost:', costSecond)
-    } catch (e: any) {
-      console.log(`figma.testCanvasFirstPainted with error: ${e.message}`)
-    }
+    await runFirstPainted({
+      driver: figma,
+      url: file.figma,
+      testName: 'figma',
+    })
   }
 
   if (pixso) {
-    const { costSecond } = await pixso.testCanvasFirstPainted(file.pixso)
-
-    console.log('pixso.testCanvasFirstPainted cost:', costSecond)
+    await runFirstPainted({
+      driver: pixso,
+      url: file.pixso,
+      testName: 'pixso',
+    })
   }
 
   if (local) {
-    const { costSecond } = await local.testCanvasFirstPainted(file.local)
-
-    console.log('local.testCanvasFirstPainted cost:', costSecond)
+    await runFirstPainted({
+      driver: local,
+      url: file.local,
+      testName: 'local',
+    })
   }
 }

@@ -34,7 +34,7 @@ export class SoulmaDriver extends TestDriver {
     super(args)
     this._webToken = args.token
     this._host = args.host || 'abc.xk.design'
-    this._protocol = args.protocol || 'https:'
+    this._protocol = args.protocol || 'http:'
     this._port = args.port || 80
     this._filePrefix = args.filePrefix || 'soulma'
   }

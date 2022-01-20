@@ -1,6 +1,44 @@
 import { DriverMap } from './types'
-import { MoveSelectAllOptions } from '../drivers'
+import { MoveSelectAllOptions, TestDriver } from '../drivers'
 import { getTestFile } from '../utils/resources'
+
+async function runMoveSelectAll({
+  driver,
+  url,
+  testName,
+  options,
+}: {
+  driver: TestDriver
+  url: string
+  testName: string
+  options: MoveSelectAllOptions
+}) {
+  try {
+    await driver.testMoveSelectAll(url, options)
+    console.log(`${testName}.testMoveSelectAll done!`)
+  } catch (e: any) {
+    console.log(`${testName}.testMoveSelectAll error:`, e.message)
+  }
+}
+
+async function runMoveForSelectShapes({
+  driver,
+  url,
+  testName,
+  options,
+}: {
+  driver: TestDriver
+  url: string
+  testName: string
+  options: MoveSelectAllOptions
+}) {
+  try {
+    await driver.testMoveForSelectShapes(url, options)
+    console.log(`${testName}.testMoveForSelectShapes done!`)
+  } catch (e: any) {
+    console.log(`${testName}.testMoveForSelectShapes error:`, e.message)
+  }
+}
 
 export async function testMoveSelectAll(
   filename: string,
@@ -10,37 +48,57 @@ export async function testMoveSelectAll(
   const file = getTestFile(filename)
 
   if (soulma) {
-    await soulma.testMoveSelectAll(file.soulma, options)
-    console.log('soulma.testMoveSelectAll done!')
+    await runMoveSelectAll({
+      driver: soulma,
+      url: file.soulma,
+      testName: 'soulma',
+      options,
+    })
   }
 
   if (mastergo) {
-    await mastergo.testMoveSelectAll(file.mastergo, options)
-    console.log('mastergo.testMoveSelectAll done!')
+    await runMoveSelectAll({
+      driver: mastergo,
+      url: file.mastergo,
+      testName: 'mastergo',
+      options,
+    })
   }
 
   if (xiaopiu) {
-    await xiaopiu.testMoveSelectAll(file.xiaopiu, options)
-    console.log('xiaopiu.testMoveSelectAll done!')
+    await runMoveSelectAll({
+      driver: xiaopiu,
+      url: file.xiaopiu,
+      testName: 'xiaopiu',
+      options,
+    })
   }
 
   if (figma) {
-    try {
-      await figma.testMoveSelectAll(file.figma, options)
-      console.log('figma.testMoveSelectAll done!')
-    } catch (e: any) {
-      console.log(`figma.testMoveSelectAll with error: ${e.message}`)
-    }
+    await runMoveSelectAll({
+      driver: figma,
+      url: file.figma,
+      testName: 'figma',
+      options,
+    })
   }
 
   if (pixso) {
-    await pixso.testMoveSelectAll(file.pixso, options)
-    console.log('pixso.testMoveSelectAll done!')
+    await runMoveSelectAll({
+      driver: pixso,
+      url: file.pixso,
+      testName: 'pixso',
+      options,
+    })
   }
 
   if (local) {
-    await local.testMoveSelectAll(file.local, options)
-    console.log('local.testMoveSelectAll done!')
+    await runMoveSelectAll({
+      driver: local,
+      url: file.local,
+      testName: 'local',
+      options,
+    })
   }
 }
 
@@ -52,36 +110,56 @@ export async function testMoveForSelectShapes(
   const file = getTestFile(filename)
 
   if (soulma) {
-    await soulma.testMoveForSelectShapes(file.soulma, options)
-    console.log('soulma.testMoveForSelectShapes done!')
+    await runMoveForSelectShapes({
+      driver: soulma,
+      url: file.soulma,
+      testName: 'soulma',
+      options,
+    })
   }
 
   if (mastergo) {
-    await mastergo.testMoveForSelectShapes(file.mastergo, options)
-    console.log('mastergo.testMoveForSelectShapes done!')
+    await runMoveForSelectShapes({
+      driver: mastergo,
+      url: file.mastergo,
+      testName: 'mastergo',
+      options,
+    })
   }
 
   if (xiaopiu) {
-    await xiaopiu.testMoveForSelectShapes(file.xiaopiu, options)
-    console.log('xiaopiu.testMoveForSelectShapes done!')
+    await runMoveForSelectShapes({
+      driver: xiaopiu,
+      url: file.xiaopiu,
+      testName: 'xiaopiu',
+      options,
+    })
   }
 
   if (figma) {
-    try {
-      await figma.testMoveForSelectShapes(file.figma, options)
-      console.log('figma.testMoveForSelectShapes done!')
-    } catch (e: any) {
-      console.log(`figma.testMoveForSelectShapes with error: ${e.message}`)
-    }
+    await runMoveForSelectShapes({
+      driver: figma,
+      url: file.figma,
+      testName: 'figma',
+      options,
+    })
   }
 
   if (pixso) {
-    await pixso.testMoveForSelectShapes(file.pixso, options)
-    console.log('pixso.testMoveForSelectShapes done!')
+    await runMoveForSelectShapes({
+      driver: pixso,
+      url: file.pixso,
+      testName: 'pixso',
+      options,
+    })
   }
 
   if (local) {
-    await local.testMoveForSelectShapes(file.local, options)
-    console.log('local.testMoveForSelectShapes done!')
+    await runMoveForSelectShapes({
+      driver: local,
+      url: file.local,
+      testName: 'local',
+      options,
+    })
   }
 }
