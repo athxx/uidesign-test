@@ -45,7 +45,10 @@ export class SoulmaDriver extends TestDriver {
     await page.goto(`${this._protocol}//${this._host}:${this._port}/`)
 
     return page.evaluate(function setToken(token: string) {
-      window.localStorage.setItem('XK-Token', token)
+      window.localStorage.setItem(
+        'XK_USER',
+        JSON.stringify({ user: { token } })
+      )
     }, this._webToken)
   }
 
@@ -90,8 +93,8 @@ export class SoulmaDriver extends TestDriver {
     await keyboard.up('ControlLeft')
 
     // TODO: 点击中心只会拖曳某个图层
-    let x = pageSettings.width / 2
-    let y = pageSettings.height / 2 + 100
+    let x = pageSettings.width / 2 + 50
+    let y = pageSettings.height / 2
 
     const testFn = () =>
       mousemoveInRetanglePath(mouse, {

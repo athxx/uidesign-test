@@ -49,6 +49,8 @@ export class XiaopiuDriver extends TestDriver {
 
     await page.goto('https://js.design/login')
 
+    await sleep(500)
+
     const $btnTabs = await page.$$('.tab-item')
     const $btnUseAccount = $btnTabs?.[$btnTabs.length - 1]
 
@@ -57,12 +59,12 @@ export class XiaopiuDriver extends TestDriver {
     const $inputName = await page.$('.input-item input')
 
     await $inputName?.type(this._account.name)
-    await sleep(100)
+    await sleep(500)
 
     const $inputPassword = await page.$('.input-item+.input-item input')
 
     await $inputPassword?.type(this._account.password)
-    await sleep(100)
+    await sleep(500)
 
     const $btnLogin = await page.$('.action-btn')
 

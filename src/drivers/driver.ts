@@ -11,6 +11,7 @@ export interface DriverOptions {
     width: number
     height: number
   }
+  timeout?: number
 }
 
 export interface TestDriverCtorArgs {
@@ -97,6 +98,10 @@ export abstract class TestDriver {
         const { width, height } = this.options.pageSettings
 
         await mainPage.setViewport({ width, height })
+      }
+
+      if (typeof this.options.timeout === 'number') {
+        await mainPage.setDefaultTimeout(this.options.timeout)
       }
     }
 

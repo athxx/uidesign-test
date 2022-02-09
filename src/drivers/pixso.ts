@@ -10,7 +10,6 @@ import {
   mousemoveInRetanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
-import { sleep } from '../utils/process'
 
 interface Account {
   name: string
@@ -83,9 +82,6 @@ export class PixsoDriver extends TestDriver {
     const x = pageSettings.width / 2 - 50
     const y = pageSettings.height / 2
 
-    // TODO: 必须先激活一个图形才能全选, 原因未明
-    await mouse.click(pageSettings.width / 2 + 100, pageSettings.height / 2)
-
     await keyboard.down('ControlLeft')
     await keyboard.press('A')
     await keyboard.up('ControlLeft')
@@ -122,8 +118,8 @@ export class PixsoDriver extends TestDriver {
     const rulerWidth = 0
     const rulerHeight = 0
     const startX =
-      canvasBoundingRect.left + rulerWidth + /** pixso左侧可直接拖动 */ +5
-    const startY = canvasBoundingRect.top + rulerHeight
+      canvasBoundingRect.left + rulerWidth + /** pixso左侧可直接拖动 */ +31
+    const startY = canvasBoundingRect.top + rulerHeight + 28
     const endX = startX + canvasBoundingRect.width
     const endY = startY + canvasBoundingRect.height
     const testFn = () =>

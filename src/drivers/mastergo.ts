@@ -43,6 +43,12 @@ export class MastergoDriver extends TestDriver {
       }
     )
 
+    const $btnLoginByAccount = await $modalLogin?.$(
+      '.login-btn+.text-btn-wrap .text-btn'
+    )
+
+    await $btnLoginByAccount?.click()
+
     const $inputName = await $modalLogin?.$('.text-input')
     const $inputPassword = await $modalLogin?.$('.login-password .text-input')
     const $btnStart = await $modalLogin?.$('.light-btn')

@@ -26,6 +26,7 @@ interface ProgramOptions {
   pageHeight: string
   editUrl: string
   editAuth: string
+  timeout: string
 }
 
 const pkg = require('../package.json')
@@ -64,6 +65,7 @@ program
   .option('--page-height <string>', 'Window innerHeight for browser', '1080')
   .option('--edit-url <string>', 'Config test products url')
   .option('--edit-auth <string>', 'Config auth settings')
+  .option('--timeout <number>', 'Second for handle timeout waiting')
 
 async function configTestUrl(filename: string) {
   let info = urlStorage.get(filename)
@@ -198,6 +200,9 @@ async function run(filename: string, options: ProgramOptions) {
       width: Number(options.pageWidth),
       height: Number(options.pageHeight),
     },
+    timeout: Number.isNaN(Number(options.timeout))
+      ? undefined
+      : Number(options.timeout) * 1000,
   }
   const testingCases = options.tests
   const authData = authStorage.get()
