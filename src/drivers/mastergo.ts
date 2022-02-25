@@ -31,8 +31,7 @@ export class MastergoDriver extends TestDriver {
     const page = await this.getMainPage()
 
     await page.goto('https://mastergo.com/')
-
-    const $btnLogin = await page.$('.login')
+    const $btnLogin = await page.waitForSelector('.login', { visible: true })
 
     await $btnLogin?.click()
 
