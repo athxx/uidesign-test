@@ -17,7 +17,7 @@ import {
 import { DriverMap } from './cases/types'
 import { TestCase, Product } from './types'
 import { urlConfirmer, urlStorage } from './utils/url-handler'
-import { authStorage, authConfirmer } from './utils/auth-handler'
+import { authStorage, authConfirmer, configAuth } from './utils/auth-handler'
 
 interface ProgramOptions {
   tests: string
@@ -88,48 +88,6 @@ async function configEditUrl(filename: string, products: Product[]) {
   }
 
   await urlStorage.write()
-}
-
-async function configAuth(products: Product[]) {
-  const authData = authStorage.get()
-
-  if (!authData.soulma && products.includes(Product.soulma)) {
-    const token = await authConfirmer.askForSoulma()
-
-    authStorage.setAuthData('soulma', { token })
-  }
-
-  if (!authData.mastergo && products.includes(Product.mastergo)) {
-    const { name, password } = await authConfirmer.askForMastergo()
-
-    authStorage.setAuthData('mastergo', { account: { name, password } })
-  }
-
-  if (!authData.xiaopiu && products.includes(Product.xiaopiu)) {
-    const { name, password } = await authConfirmer.askForXiaopiu()
-
-    authStorage.setAuthData('xiaopiu', { account: { name, password } })
-  }
-
-  if (!authData.figma && products.includes(Product.figma)) {
-    const { name, password } = await authConfirmer.askForFigma()
-
-    authStorage.setAuthData('figma', { account: { name, password } })
-  }
-
-  if (!authData.pixso && products.includes(Product.pixso)) {
-    const { name, password } = await authConfirmer.askForPixso()
-
-    authStorage.setAuthData('pixso', { account: { name, password } })
-  }
-
-  if (!authData.local && products.includes(Product.local)) {
-    const token = await authConfirmer.askForLocal()
-
-    authStorage.setAuthData('local', { token })
-  }
-
-  return authStorage.write()
 }
 
 async function configEditAuth(products: Product[]) {
