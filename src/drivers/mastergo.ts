@@ -52,7 +52,7 @@ export class MastergoDriver extends TestDriver {
     const $btnLogin = (
       await page.$$('.login-register-container .light-btn')
     )?.[0]
-    $btnLogin?.click()
+    await $btnLogin?.click()
     await page.waitForNavigation()
   }
 
@@ -190,7 +190,7 @@ export class MastergoDriver extends TestDriver {
       j = 0
     // 循环打开文件
     // 捕捉到painter渲染就跳转到下一个文件
-    for (const item of list.slice(0, 3)) {
+    for (const item of list) {
       i++
       try {
         // await page.goto(preUrl + item.id)
@@ -198,23 +198,14 @@ export class MastergoDriver extends TestDriver {
       } catch (error) {
         j++
         // 捕捉不到就把文件记录下来
-        await fs.appendFile(
-          reportFile,
-          preUrl + item.doc_id + ' : ' + error + '\n'
-        )
+        await fs.appendFile(reportFile, preUrl + item.id + ' : ' + error + '\n')
         console.log(error)
       }
     }
 
-    const result =
-      new Date().toISOString() +
-      '     平台共执行 ' +
-      i +
-      ' 个文件, 其中成功 ' +
-      (i - j) +
-      ' 个, 失败 ' +
-      j +
-      ' 个.\n'
+    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
+      i - j
+    } 个, 失败 ${j} 个.\n`
 
     await fs.appendFile(reportFile, result)
   }

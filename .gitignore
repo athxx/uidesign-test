@@ -3,3 +3,4 @@ dist/
 performances/
 .test-url.json
 .auth.json
+.idea

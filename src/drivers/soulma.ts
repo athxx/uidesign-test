@@ -156,7 +156,7 @@ export class SoulmaDriver extends TestDriver {
 
   async getDocList(auth: string): Promise<any> {
     // 获取列表
-    const url = 'http://abc.xk.design/api/doc/history'
+    const url = 'http://abc.xk.design/api/doc/list?state=1'
     const resp = await axios.get(url, {
       headers: { 'Content-Type': 'application/json', Token: auth },
     })
@@ -174,25 +174,24 @@ export class SoulmaDriver extends TestDriver {
       i++
       try {
         await this.testCanvasFirstPainted(preUrl + item.doc_id)
+        console.log(
+          `成功执行 ${i} 个文件, [${item.doc_name}]  ${preUrl}${item.doc_id}`
+        )
       } catch (error) {
         j++
         // 捕捉不到就把文件记录下来
         await fs.appendFile(
           reportFile,
-          preUrl + item.doc_id + ' : ' + error + '\n'
+          `[${item.doc_name}] ${preUrl}${item.doc_id} ,  错误: ${error}\n`
         )
-        console.log(error)
+        console.log(
+          `执行失败 ${j} 个文件, [${item.doc_name}] ${preUrl}${item.doc_id} ,  错误:  ${error}`
+        )
       }
     }
-    const result =
-      new Date().toISOString() +
-      '     平台共执行 ' +
-      i +
-      ' 个文件, 其中成功 ' +
-      (i - j) +
-      ' 个, 失败 ' +
-      j +
-      ' 个.\n'
+    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
+      i - j
+    } 个, 失败 ${j} 个.\n`
     await fs.appendFile(reportFile, result)
   }
 }

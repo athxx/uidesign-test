@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 import puppeteer from 'puppeteer'
 import { configAuth, authStorage } from './utils/auth-handler'
 
@@ -43,7 +41,7 @@ async function getDriver(
       width: 1920,
       height: 1080,
     },
-    timeout: 60000,
+    timeout: 300000,
   }
   if (driverName === 'soulma') {
     return new SoulmaDriver({
@@ -76,8 +74,8 @@ async function main() {
   await configAuth([Product[driverName]])
 
   const browser = await puppeteer.launch({
-    headless: false,
-    devtools: true,
+    headless: true,
+    devtools: false,
     args: ['--start-maximized'],
   })
 

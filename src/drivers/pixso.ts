@@ -199,18 +199,20 @@ export class PixsoDriver extends TestDriver {
           reportFile,
           preUrl + item.file_key + ' : ' + error + '\n'
         )
-        console.log(error)
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(
+          reportFile,
+          `[${item.doc_name}] ${preUrl}${item.file_key} ,  错误: ${error}\n`
+        )
+        console.log(
+          `执行失败 ${j} 个文件, [${item.doc_name}] ${preUrl}${item.file_key} ,  错误:  ${error}`
+        )
       }
     }
-    const result =
-      new Date().toISOString() +
-      '     平台共执行 ' +
-      i +
-      ' 个文件, 其中成功 ' +
-      (i - j) +
-      ' 个, 失败 ' +
-      j +
-      ' 个.\n'
+    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
+      i - j
+    } 个, 失败 ${j} 个.\n`
+
     await fs.appendFile(reportFile, result)
   }
 }
