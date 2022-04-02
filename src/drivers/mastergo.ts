@@ -1,5 +1,6 @@
 import { performance } from 'perf_hooks'
-
+import axios from 'axios'
+import fs from 'fs/promises'
 import {
   TestDriver,
   TestDriverCtorArgs,
@@ -30,31 +31,28 @@ export class MastergoDriver extends TestDriver {
   async makeReady() {
     const page = await this.getMainPage()
 
-    await page.goto('https://mastergo.com/')
-    const $btnLogin = await page.waitForSelector('.login', { visible: true })
+    await page.goto('https://mastergo.com/files/login')
+    await page.waitForSelector('.login-register-container')
+    const $pswBtn = (
+      await page.$$('.login-register-container .text-btn-wrap')
+    )?.[2]
+    await $pswBtn?.click()
 
-    await $btnLogin?.click()
-
-    const $modalLogin = await page.waitForSelector(
-      '.login-register-container',
-      {
-        visible: true,
-      }
-    )
-
-    const $btnLoginByAccount = await $modalLogin?.$(
-      '.login-btn+.text-btn-wrap .text-btn'
-    )
-
-    await $btnLoginByAccount?.click()
-
-    const $inputName = await $modalLogin?.$('.text-input')
-    const $inputPassword = await $modalLogin?.$('.login-password .text-input')
-    const $btnStart = await $modalLogin?.$('.light-btn')
-
+    await page.waitForSelector('.login-register-container .text-input')
+    const $inputName = (
+      await page.$$('.login-register-container .text-input')
+    )?.[0]
     await $inputName?.type(this._account.name)
+    const $inputPassword = (
+      await page.$$('.login-register-container .text-input')
+    )?.[1]
     await $inputPassword?.type(this._account.password)
-    await $btnStart?.click()
+
+    await page.waitForSelector('.login-register-container .text-input')
+    const $btnLogin = (
+      await page.$$('.login-register-container .light-btn')
+    )?.[0]
+    $btnLogin?.click()
     await page.waitForNavigation()
   }
 
@@ -157,5 +155,67 @@ export class MastergoDriver extends TestDriver {
       screenshots: true,
       filename: 'mastergo-wheel-zoom.json',
     })
+  }
+
+  async getDocList(auth: string): Promise<any> {
+    // 获取列表
+    const folderUrl =
+      'https://mastergo.com/api/v1/users/teams?withProjects=true&page[size]=1000&page[number]=1'
+    const project = await axios.get(folderUrl, { headers: { cookie: auth } })
+    let projectId: string = ''
+    for (const item of project.data.data) {
+      if (item.name === '个人空间') {
+        projectId = item.projects[0].id
+      }
+    }
+    console.log('project ID  : ', projectId)
+    const url =
+      'https://mastergo.com/api/v1/documents?page[offset]=20&page[size]=3000&sort=-updated_at&projectId=' +
+      projectId
+    const resp = await axios.get(url, { headers: { cookie: auth } })
+
+    return resp.data.data
+  }
+
+  async viewDocList(reportFile: string) {
+    const page = await this.getMainPage()
+    const cookies = await page.cookies()
+    const cookie = cookies.reduce((acc, curr) => {
+      acc += `${curr.name}=${curr.value};`
+      return acc
+    }, '')
+    const list = await this.getDocList(cookie)
+    const preUrl = 'https://mastergo.com/file/'
+    let i = 0,
+      j = 0
+    // 循环打开文件
+    // 捕捉到painter渲染就跳转到下一个文件
+    for (const item of list.slice(0, 3)) {
+      i++
+      try {
+        // await page.goto(preUrl + item.id)
+        await this.testCanvasFirstPainted(preUrl + item.id)
+      } catch (error) {
+        j++
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(
+          reportFile,
+          preUrl + item.doc_id + ' : ' + error + '\n'
+        )
+        console.log(error)
+      }
+    }
+
+    const result =
+      new Date().toISOString() +
+      '     平台共执行 ' +
+      i +
+      ' 个文件, 其中成功 ' +
+      (i - j) +
+      ' 个, 失败 ' +
+      j +
+      ' 个.\n'
+
+    await fs.appendFile(reportFile, result)
   }
 }

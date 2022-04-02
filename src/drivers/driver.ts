@@ -66,6 +66,8 @@ export abstract class TestDriver {
       ...options,
     }
   }
+  abstract getDocList(auth: string): Promise<void>
+  abstract viewDocList(reportFile: string): Promise<any>
 
   abstract makeReady(): Promise<void>
   abstract setZoom(zoom: number): Promise<void>
@@ -82,7 +84,7 @@ export abstract class TestDriver {
   ): Promise<void>
   abstract testWheelZoom(url: string): Promise<void>
 
-  protected ready() {
+  ready() {
     if (!this._readyPromise) {
       this._readyPromise = this.makeReady()
     }
@@ -93,7 +95,10 @@ export abstract class TestDriver {
   async getMainPage() {
     if (!mainPage) {
       mainPage = await this.browser.newPage()
-
+      const pages = await this.browser.pages()
+      if (pages.length > 1) {
+        await pages[0].close()
+      }
       if (this.options.pageSettings) {
         const { width, height } = this.options.pageSettings
 

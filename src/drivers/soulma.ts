@@ -1,5 +1,6 @@
 import { performance } from 'perf_hooks'
-
+import axios from 'axios'
+import fs from 'fs/promises'
 import {
   TestDriver,
   TestDriverCtorArgs,
@@ -151,5 +152,47 @@ export class SoulmaDriver extends TestDriver {
       screenshots: true,
       filename: `${this._filePrefix}-wheel-zoom.json`,
     })
+  }
+
+  async getDocList(auth: string): Promise<any> {
+    // 获取列表
+    const url = 'http://abc.xk.design/api/doc/history'
+    const resp = await axios.get(url, {
+      headers: { 'Content-Type': 'application/json', Token: auth },
+    })
+    return resp.data.data
+  }
+
+  async viewDocList(reportFile: string) {
+    const list = await this.getDocList(this._webToken)
+    const preUrl = 'http://abc.xk.design/design/'
+    let i = 0,
+      j = 0
+    // 循环打开文件
+    // 捕捉到painter渲染就跳转到下一个文件
+    for (const item of list) {
+      i++
+      try {
+        await this.testCanvasFirstPainted(preUrl + item.doc_id)
+      } catch (error) {
+        j++
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(
+          reportFile,
+          preUrl + item.doc_id + ' : ' + error + '\n'
+        )
+        console.log(error)
+      }
+    }
+    const result =
+      new Date().toISOString() +
+      '     平台共执行 ' +
+      i +
+      ' 个文件, 其中成功 ' +
+      (i - j) +
+      ' 个, 失败 ' +
+      j +
+      ' 个.\n'
+    await fs.appendFile(reportFile, result)
   }
 }

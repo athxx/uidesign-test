@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.26.1",
     "commander": "^8.3.0",
     "lighthouse": "^9.1.0",
     "prompts": "^2.4.2",

@@ -1,5 +1,6 @@
 import { performance } from 'perf_hooks'
-
+import axios from 'axios'
+import fs from 'fs/promises'
 import {
   TestDriver,
   TestDriverCtorArgs,
@@ -131,5 +132,55 @@ export class FigmaDriver extends TestDriver {
       screenshots: true,
       filename: 'figma-wheel-zoom.json',
     })
+  }
+
+  async getDocList(auth: string): Promise<any> {
+    const folderUrl = 'https://www.figma.com/api/user/state'
+    const folder = await axios.get(folderUrl, { headers: { cookie: auth } })
+    const folderId = folder.data.meta.drafts_folder_id
+    // console.log(folderId);
+    const url = 'https://www.figma.com/api/folders/' + folderId + '/files'
+    const resp = await axios.get(url, { headers: { cookie: auth } })
+    return resp.data.meta.files
+  }
+
+  async viewDocList(reportFile: string) {
+    const page = await this.getMainPage()
+    const cookies = await page.cookies()
+    const cookie = cookies.reduce((acc, curr) => {
+      acc += `${curr.name}=${curr.value};`
+      return acc
+    }, '')
+    const list = await this.getDocList(cookie)
+    let i = 0,
+      j = 0
+    // 循环打开文件
+    // 捕捉到painter渲染就跳转到下一个文件
+    for (const item of list) {
+      i++
+      try {
+        // await page.goto(item.url)
+        await this.testCanvasFirstPainted(item.url)
+        page.on('dialog', async (dialog) => {
+          console.log('here')
+          await dialog.accept()
+        })
+      } catch (error) {
+        j++
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(reportFile, item.url + ' : ' + error + '\n')
+        console.log(error)
+      }
+    }
+    const result =
+      new Date().toISOString() +
+      '     平台共执行 ' +
+      i +
+      ' 个文件, 其中成功 ' +
+      (i - j) +
+      ' 个, 失败 ' +
+      j +
+      ' 个.\n'
+    await fs.appendFile(reportFile, result)
   }
 }

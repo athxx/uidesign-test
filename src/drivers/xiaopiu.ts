@@ -1,5 +1,6 @@
 import { performance } from 'perf_hooks'
-
+import axios from 'axios'
+import fs from 'fs/promises'
 import {
   TestDriver,
   TestDriverCtorArgs,
@@ -106,9 +107,7 @@ export class XiaopiuDriver extends TestDriver {
     const startTime = performance.now()
 
     await page.goto(url, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('.loading')
-    await page.waitForSelector('.loading', { hidden: true })
-
+    await page.waitForSelector('#editCanvas')
     return {
       costSecond: (performance.now() - startTime) / 1000,
     }
@@ -183,5 +182,55 @@ export class XiaopiuDriver extends TestDriver {
       screenshots: true,
       filename: 'xiaopiu-wheel-zoom.json',
     })
+  }
+
+  async getDocList(auth: string): Promise<any> {
+    // 获取列表
+    const url = 'https://ds.js.design/projects/list'
+    console.log(auth)
+
+    const resp = await axios.post(url, null, { headers: { cookie: auth } })
+    return resp.data.projects
+  }
+
+  async viewDocList(reportFile: string) {
+    const page = await this.getMainPage()
+    await page.goto('https://ds.js.design')
+    const cookies = await page.cookies()
+    const cookie = cookies.reduce((acc, curr) => {
+      acc += `${curr.name}=${curr.value};`
+      return acc
+    }, '')
+
+    const list = await this.getDocList(cookie)
+    const preUrl = 'https://js.design/f/'
+    let i = 0,
+      j = 0
+    // 循环打开文件
+    // 捕捉到painter渲染就跳转到下一个文件
+    for (const item of list) {
+      i++
+      try {
+        await this.testCanvasFirstPainted(preUrl + item.shortId)
+      } catch (error) {
+        j++
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(
+          reportFile,
+          preUrl + item.shortId + ' : ' + error + '\n'
+        )
+        console.log(error)
+      }
+    }
+    const result =
+      new Date().toISOString() +
+      '     平台共执行 ' +
+      i +
+      ' 个文件, 其中成功 ' +
+      (i - j) +
+      ' 个, 失败 ' +
+      j +
+      ' 个.\n'
+    await fs.appendFile(reportFile, result)
   }
 }
