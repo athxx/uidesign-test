@@ -68,6 +68,7 @@ export abstract class TestDriver {
   }
   abstract getDocList(auth: string): Promise<void>
   abstract viewDocList(reportFile: string): Promise<any>
+  abstract upload(dir: string, reportFile: string): Promise<void>
 
   abstract makeReady(): Promise<void>
   abstract setZoom(zoom: number): Promise<void>

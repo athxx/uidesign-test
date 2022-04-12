@@ -5,7 +5,7 @@ interface Point {
   y: number
 }
 
-export async function mousemoveInRetanglePath(
+export async function mousemoveInRectanglePath(
   mouse: Mouse,
   options: {
     start: Point

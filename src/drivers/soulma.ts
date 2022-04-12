@@ -8,7 +8,7 @@ import {
   MoveSelectAllOptions,
 } from './driver'
 import {
-  mousemoveInRetanglePath,
+  mousemoveInRectanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
@@ -71,7 +71,6 @@ export class SoulmaDriver extends TestDriver {
 
     const page = await this.getMainPage()
     const startTime = performance.now()
-
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.progress-mask')
     await page.waitForSelector('.progress-mask', { hidden: true })
@@ -98,7 +97,7 @@ export class SoulmaDriver extends TestDriver {
     let y = pageSettings.height / 2
 
     const testFn = () =>
-      mousemoveInRetanglePath(mouse, {
+      mousemoveInRectanglePath(mouse, {
         start: { x, y },
         steps: options.mousemoveSteps,
         delta: options.mousemoveDelta,
@@ -165,33 +164,37 @@ export class SoulmaDriver extends TestDriver {
 
   async viewDocList(reportFile: string) {
     const list = await this.getDocList(this._webToken)
-    const preUrl = 'http://abc.xk.design/design/'
-    let i = 0,
-      j = 0
-    // 循环打开文件
-    // 捕捉到painter渲染就跳转到下一个文件
-    for (const item of list) {
-      i++
+    const uri = 'http://abc.xk.design/design/'
+    let path = require('path')
+    let curTime = new Date().toJSON().replace(/([TZ.\-:])+/g, '')
+    const statFile = path.join(
+      path.dirname(reportFile),
+      `open_soulma_${curTime}.csv`
+    )
+    await fs.writeFile(statFile, 'Time,Name,Url\n')
+    const l = list.length
+    console.log(l, statFile)
+
+    let k = 0
+    for (const v of list) {
+      k++
       try {
-        await this.testCanvasFirstPainted(preUrl + item.doc_id)
-        console.log(
-          `成功执行 ${i} 个文件, [${item.doc_name}]  ${preUrl}${item.doc_id}`
-        )
-      } catch (error) {
-        j++
-        // 捕捉不到就把文件记录下来
+        const t = (
+          await this.testCanvasFirstPainted(uri + v.doc_id)
+        ).costSecond.toFixed(3)
+        await fs.appendFile(statFile, `${t},${v.doc_name},${uri}${v.doc_id}\n`)
+        console.log(`${k}/${l}\t${t}\t${v.doc_name}`)
+      } catch (e) {
         await fs.appendFile(
-          reportFile,
-          `[${item.doc_name}] ${preUrl}${item.doc_id} ,  错误: ${error}\n`
+          statFile,
+          `300,${v.doc_name},${uri}${v.doc_id},${e}\n`
         )
         console.log(
-          `执行失败 ${j} 个文件, [${item.doc_name}] ${preUrl}${item.doc_id} ,  错误:  ${error}`
+          `${k}/${l}\t300\t${v.doc_name}\t${uri}${v.doc_id}\terror:${e}`
         )
       }
     }
-    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
-      i - j
-    } 个, 失败 ${j} 个.\n`
-    await fs.appendFile(reportFile, result)
   }
+
+  async upload(dir: string, reportFile: string) {}
 }

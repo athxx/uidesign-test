@@ -8,7 +8,7 @@ import {
   MoveSelectAllOptions,
 } from './driver'
 import {
-  mousemoveInRetanglePath,
+  mousemoveInRectanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 import { sleep } from '../utils/process'
@@ -50,7 +50,7 @@ export class XiaopiuDriver extends TestDriver {
 
     await page.goto('https://js.design/login')
 
-    await sleep(500)
+    await sleep(200)
 
     const $btnTabs = await page.$$('.tab-item')
     const $btnUseAccount = $btnTabs?.[$btnTabs.length - 1]
@@ -60,12 +60,12 @@ export class XiaopiuDriver extends TestDriver {
     const $inputName = await page.$('.input-item input')
 
     await $inputName?.type(this._account.name)
-    await sleep(500)
+    await sleep(200)
 
     const $inputPassword = await page.$('.input-item+.input-item input')
 
     await $inputPassword?.type(this._account.password)
-    await sleep(500)
+    await sleep(100)
 
     const $btnLogin = await page.$('.action-btn')
 
@@ -104,10 +104,12 @@ export class XiaopiuDriver extends TestDriver {
     await this.ready()
 
     const page = await this.getMainPage()
-    const startTime = performance.now()
 
+    const startTime = performance.now()
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('#editCanvas')
+    await sleep(200)
+
     return {
       costSecond: (performance.now() - startTime) / 1000,
     }
@@ -128,7 +130,7 @@ export class XiaopiuDriver extends TestDriver {
     const x = pageSettings.width / 2
     const y = pageSettings.height / 2
     const testFn = () =>
-      mousemoveInRetanglePath(mouse, {
+      mousemoveInRectanglePath(mouse, {
         start: { x, y },
         steps: options.mousemoveSteps,
         delta: options.mousemoveDelta,
@@ -187,9 +189,11 @@ export class XiaopiuDriver extends TestDriver {
   async getDocList(auth: string): Promise<any> {
     // 获取列表
     const url = 'https://ds.js.design/projects/list'
-    console.log(auth)
+    // console.log(auth)
 
-    const resp = await axios.post(url, null, { headers: { cookie: auth } })
+    const resp = await axios.post(url, 'sortType=createDate&size=3000', {
+      headers: { cookie: auth },
+    })
     return resp.data.projects
   }
 
@@ -203,37 +207,86 @@ export class XiaopiuDriver extends TestDriver {
     }, '')
 
     const list = await this.getDocList(cookie)
+    const l = list.length
+    console.log('Total : ' + l)
     const preUrl = 'https://js.design/f/'
-    let i = 0,
-      j = 0
+
     // 循环打开文件
     // 捕捉到painter渲染就跳转到下一个文件
-    for (const item of list) {
-      i++
+    const path = require('path')
+    let curTime = new Date().toJSON().replace(/([TZ.\-:])+/g, '')
+    const statFile = path.join(
+      path.dirname(reportFile),
+      `open_xiaopiu_${curTime}.csv`
+    )
+    await fs.writeFile(statFile, 'Time,Name,Url\n')
+    console.log(statFile)
+    let k = 0
+    // let ss: number[] = []
+    // for (let i = 1; i <= 2737; i++) {
+    //   ss.push(i)
+    // }
+    // for (const v of list) {
+    //   const num = +v.name.slice(0, 4)
+    //   ss = ss.filter((el) => {
+    //     return (el !== num)
+    //   })
+    // }
+    // console.log(ss);
+    // return
+    for (const v of list) {
+      k++
+      // const num = +v.name.slice(0, 4)
+      // if (![2002, 626, 1310].includes(num)) {
+      //   continue
+      // }
       try {
-        await this.testCanvasFirstPainted(preUrl + item.shortId)
-      } catch (error) {
-        j++
+        const t = (
+          await this.testCanvasFirstPainted(preUrl + v.shortId)
+        ).costSecond.toFixed(3)
+        console.log(`${k}/${l}\t${preUrl}${v.shortId}\t${t}\t${v.name}`)
+        await fs.appendFile(statFile, `${t},${v.name},${preUrl}${v.shortId}\n`)
+      } catch (e) {
+        // 捕捉不到就把文件记录下来
         // 捕捉不到就把文件记录下来
         await fs.appendFile(
           reportFile,
-          preUrl + item.shortId + ' : ' + error + '\n'
+          `${v.name}\t${preUrl}${v.shortId}\terror:${e}\n`
         )
-        console.log(error)
-        // 捕捉不到就把文件记录下来
         await fs.appendFile(
-          reportFile,
-          `[${item.doc_name}] ${preUrl}${item.shortId} ,  错误: ${error}\n`
+          statFile,
+          `300,${v.name},${preUrl}${v.shortId},${e}\n`
         )
-        console.log(
-          `执行失败 ${j} 个文件, [${item.doc_name}] ${preUrl}${item.shortId} ,  错误:  ${error}`
-        )
+        console.log(`${k}/${l}\t${v.name}\t${preUrl}${v.shortId}\t错误:${e}`)
       }
     }
-    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
-      i - j
-    } 个, 失败 ${j} 个.\n`
+  }
 
-    await fs.appendFile(reportFile, result)
+  async upload(dir: string, reportFile: string) {
+    const page = await this.getMainPage()
+    const list = await fs.readdir(dir)
+    const path = require('path')
+    for (const f of list) {
+      const num = +f.slice(0, 4)
+      if (path.extname(f) === '.sketch' && num > 0 && num > 14 && num < 17) {
+        try {
+          await page.waitForSelector('#importSketchProcess')
+          const $upBtn = await page.$('input[accept=".sketch"]')
+          await $upBtn?.uploadFile(dir + f)
+          // console.log($upBtn);
+          await page.click('#popupSubmitBtn')
+          await page.waitForFunction(
+            'document.querySelector("#root").innerText.includes("文件导入成功")'
+          )
+          // await sleep(100);
+          console.log(f)
+        } catch (e) {
+          // 捕捉不到就把文件记录下来
+          await fs.appendFile(reportFile, `${f} , [ error ] ${e}\n`)
+          console.log('error : ' + f)
+        }
+        await page.goto('https://js.design/workspace')
+      }
+    }
   }
 }

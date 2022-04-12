@@ -1,6 +1,7 @@
 import { performance } from 'perf_hooks'
 import axios from 'axios'
 import fs from 'fs/promises'
+import { sleep } from '../utils/process'
 import {
   TestDriver,
   TestDriverCtorArgs,
@@ -8,7 +9,7 @@ import {
   MoveSelectAllOptions,
 } from './driver'
 import {
-  mousemoveInRetanglePath,
+  mousemoveInRectanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
@@ -48,10 +49,12 @@ export class FigmaDriver extends TestDriver {
 
     const page = await this.getMainPage()
     const startTime = performance.now()
-
-    await page.goto(url)
+    await page.goto(url, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.progress_bar--outer--3EVoD')
     await page.waitForSelector('.progress_bar--outer--3EVoD', { hidden: true })
+    page.on('dialog', async (dialog) => {
+      dialog.accept().catch((err) => {})
+    })
 
     return {
       costSecond: (performance.now() - startTime) / 1000,
@@ -75,7 +78,7 @@ export class FigmaDriver extends TestDriver {
     await keyboard.up('ControlLeft')
 
     const testFn = () =>
-      mousemoveInRetanglePath(mouse, {
+      mousemoveInRectanglePath(mouse, {
         start: { x, y },
         steps: options.mousemoveSteps,
         delta: options.mousemoveDelta,
@@ -152,36 +155,46 @@ export class FigmaDriver extends TestDriver {
       return acc
     }, '')
     const list = await this.getDocList(cookie)
-    let i = 0,
-      j = 0
+    const path = require('path')
+    let curTime = new Date().toJSON().replace(/([TZ.\-:])+/g, '')
+    const statFile = path.join(
+      path.dirname(reportFile),
+      `open_figma_${curTime}.csv`
+    )
+    await fs.writeFile(statFile, 'Time,Name,Url\n')
+    console.log(statFile)
+    let k = 0
+    const l = list.length
+    console.log(l)
     // 循环打开文件
     // 捕捉到painter渲染就跳转到下一个文件
-    for (const item of list) {
-      i++
+    for (const v of list) {
+      k++
+      const num = +v.name.slice(0, 4)
+      if (
+        ![
+          2713, 2470, 1553, 1960, 2421, 1913, 2055, 2126, 1560, 2731, 1554,
+          1598, 1501, 2446, 1955, 1552, 1504, 1557, 1604,
+        ].includes(num)
+      ) {
+        continue
+      }
       try {
         // await page.goto(item.url)
-        await this.testCanvasFirstPainted(item.url)
-        page.on('dialog', async (dialog) => {
-          console.log('here')
-          await dialog.accept()
-        })
-      } catch (error) {
-        j++
-        // 捕捉不到就把文件记录下来
-        await fs.appendFile(reportFile, item.url + ' : ' + error + '\n')
-        // 捕捉不到就把文件记录下来
-        await fs.appendFile(
-          reportFile,
-          `[${item.doc_name}] ${item.url} ,  错误: ${error}\n`
+        const t = (await this.testCanvasFirstPainted(v.url)).costSecond.toFixed(
+          3
         )
-        console.log(
-          `执行失败 ${j} 个文件, [${item.doc_name}] ${item.url} ,  错误:  ${error}`
-        )
+        await fs.appendFile(statFile, `${t},${v.name},${v.url}\n`)
+        console.log(`${k}/${l}\t${t}\t${v.url}`)
+      } catch (e) {
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(reportFile, v.url + ' : ' + e + '\n')
+        // 捕捉不到就把文件记录下来
+        await fs.appendFile(statFile, `300,${v.name},${v.url},error:${e}\n`)
+        console.log(`${k}/${l}\t300\t${v.name}\t${v.url}\t错误:${e}`)
       }
     }
-    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
-      i - j
-    } 个, 失败 ${j} 个.\n`
-    await fs.appendFile(reportFile, result)
   }
+
+  async upload(dir: string, reportFile: string) {}
 }

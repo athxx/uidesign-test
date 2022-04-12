@@ -8,7 +8,7 @@ import {
   MoveSelectAllOptions,
 } from './driver'
 import {
-  mousemoveInRetanglePath,
+  mousemoveInRectanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
@@ -90,7 +90,7 @@ export class PixsoDriver extends TestDriver {
     await keyboard.up('ControlLeft')
 
     const testFn = () =>
-      mousemoveInRetanglePath(mouse, {
+      mousemoveInRectanglePath(mouse, {
         start: { x, y },
         steps: options.mousemoveSteps,
         delta: options.mousemoveDelta,
@@ -209,10 +209,7 @@ export class PixsoDriver extends TestDriver {
         )
       }
     }
-    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
-      i - j
-    } 个, 失败 ${j} 个.\n`
-
-    await fs.appendFile(reportFile, result)
   }
+
+  async upload(dir: string, reportFile: string) {}
 }

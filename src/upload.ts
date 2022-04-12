@@ -41,7 +41,7 @@ async function getDriver(
       width: 1920,
       height: 1080,
     },
-    timeout: 300000,
+    timeout: 180000,
   }
   if (driverName === 'soulma') {
     return new SoulmaDriver({
@@ -61,31 +61,41 @@ async function getDriver(
 }
 
 async function main() {
-  const driverName: string = process.argv[2]
-  if (driverName === undefined || products.indexOf(driverName) === -1) {
+  let driverName: string = process.argv[2]
+  let dir: string = process.argv[3]
+  // dir = 'E:/sketchs/'
+  if (
+    driverName === undefined ||
+    dir.length < 4 ||
+    products.indexOf(driverName) === -1
+  ) {
     console.log(
-      'error: missing required argument platform \n\n\n' +
-        'Platform Options : soulma, figma, mastergo, pixso, xiaopiu'
+      'error: missing required argument platform \n\n' +
+        '[ Platform Options ] : soulma, figma, mastergo, pixso, xiaopiu\n' +
+        '[ Sketch Directory ] : E:/sketchs/'
     )
     return
   }
   const path = require('path')
-  const reportFile = path.join(`${__dirname}/../report/open_${driverName}.log`)
+  const reportFile = path.join(
+    `${__dirname}/../report/upload_${driverName}.log`
+  )
+  dir = path.join(dir, '/') // sketch路径
   console.log('log will save at : ' + reportFile)
-
   // @ts-ignore
   await configAuth([Product[driverName]])
-
-  const debug = !!process.argv[3] || false
   const browser = await puppeteer.launch({
-    headless: !debug,
-    devtools: debug,
-    args: ['--start-maximized'],
+    headless: true,
+    devtools: true,
+    args: [
+      '--start-maximized',
+      // '--proxy-server=127.0.0.1:7890'
+    ],
   })
 
   const driver = await getDriver(browser, driverName)
   await driver.ready()
-  await driver.viewDocList(reportFile)
+  await driver.upload(dir, reportFile)
   await browser.close()
 }
 

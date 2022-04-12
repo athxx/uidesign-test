@@ -1,6 +1,7 @@
 import { performance } from 'perf_hooks'
 import axios from 'axios'
 import fs from 'fs/promises'
+import { sleep } from '../utils/process'
 import {
   TestDriver,
   TestDriverCtorArgs,
@@ -8,7 +9,7 @@ import {
   MoveSelectAllOptions,
 } from './driver'
 import {
-  mousemoveInRetanglePath,
+  mousemoveInRectanglePath,
   mousemoveInDiagonalPath,
 } from '../utils/mouse'
 
@@ -36,16 +37,16 @@ export class MastergoDriver extends TestDriver {
     const $pswBtn = (
       await page.$$('.login-register-container .text-btn-wrap')
     )?.[2]
-    await $pswBtn?.click()
 
+    await $pswBtn?.click()
     await page.waitForSelector('.login-register-container .text-input')
-    const $inputName = (
-      await page.$$('.login-register-container .text-input')
-    )?.[0]
+
+    // const $inputName = ( await page.$$('.login-register-container .text-input') )?.[0]
+    const $inputName = await page.$('input[placeholder="手机号/邮箱"]')
     await $inputName?.type(this._account.name)
-    const $inputPassword = (
-      await page.$$('.login-register-container .text-input')
-    )?.[1]
+
+    // const $inputPassword = ( await page.$$('.login-register-container .text-input') )?.[1]
+    const $inputPassword = await page.$('input[placeholder="密码"]')
     await $inputPassword?.type(this._account.password)
 
     await page.waitForSelector('.login-register-container .text-input')
@@ -76,7 +77,6 @@ export class MastergoDriver extends TestDriver {
 
     const page = await this.getMainPage()
     const startTime = performance.now()
-
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.skeleton_screen_editpage')
     await page.waitForSelector('.skeleton_screen_editpage', { hidden: true })
@@ -101,7 +101,7 @@ export class MastergoDriver extends TestDriver {
     let x = pageSettings.width / 2
     let y = pageSettings.height / 2
     const testFn = () =>
-      mousemoveInRetanglePath(mouse, {
+      mousemoveInRectanglePath(mouse, {
         start: { x, y },
         steps: options.mousemoveSteps,
         delta: options.mousemoveDelta,
@@ -170,7 +170,7 @@ export class MastergoDriver extends TestDriver {
     }
     console.log('project ID  : ', projectId)
     const url =
-      'https://mastergo.com/api/v1/documents?page[offset]=20&page[size]=3000&sort=-updated_at&projectId=' +
+      'https://mastergo.com/api/v1/documents?page[offset]=0&page[size]=3000&sort=name&projectId=' +
       projectId
     const resp = await axios.get(url, { headers: { cookie: auth } })
 
@@ -184,29 +184,83 @@ export class MastergoDriver extends TestDriver {
       acc += `${curr.name}=${curr.value};`
       return acc
     }, '')
+    const path = require('path')
+    let curTime = +new Date().toJSON().replace(/([TZ.\-:])+/g, '')
+    const statFile = path.join(
+      path.dirname(reportFile),
+      `open_mastergo_${curTime}.csv`
+    )
+    await fs.writeFile(statFile, 'Time,Name,Url\n')
+    console.log(statFile)
     const list = await this.getDocList(cookie)
+    const l = list.length
     const preUrl = 'https://mastergo.com/file/'
-    let i = 0,
-      j = 0
+    let k = 0
     // 循环打开文件
     // 捕捉到painter渲染就跳转到下一个文件
-    for (const item of list) {
-      i++
+    for (const v of list) {
+      k++
+      // const num = +v.name.slice(0, 4)
+      // if (![1422, 2110, 2514, 2601].includes(num)) {
+      //   continue
+      // }
       try {
         // await page.goto(preUrl + item.id)
-        await this.testCanvasFirstPainted(preUrl + item.id)
-      } catch (error) {
-        j++
+        const t = (
+          await this.testCanvasFirstPainted(preUrl + v.id)
+        ).costSecond.toFixed(3)
+        await fs.appendFile(statFile, `${t},${v.name},${preUrl}${v.id}\n`)
+        console.log(`${k}/${l}\t${preUrl}${v.id}\t${t}\t${v.name}`)
+      } catch (e) {
         // 捕捉不到就把文件记录下来
-        await fs.appendFile(reportFile, preUrl + item.id + ' : ' + error + '\n')
-        console.log(error)
+        await fs.appendFile(reportFile, preUrl + v.id + ' : ' + e + '\n')
+        await fs.appendFile(
+          statFile,
+          `300,${v.name},${preUrl}${v.id},error:${e}\n`
+        )
+        console.log(`${k}/${l}\t${v.name}\t${preUrl}${v.id}\t错误:${e}`)
       }
     }
+  }
 
-    const result = `${new Date().toISOString()}     平台共执行 ${i} 个文件, 其中成功 ${
-      i - j
-    } 个, 失败 ${j} 个.\n`
-
-    await fs.appendFile(reportFile, result)
+  async upload(dir: string, reportFile: string) {
+    const list = await fs.readdir(dir)
+    const page = await this.getMainPage()
+    const path = require('path')
+    let files: string[] = []
+    for (const f of list) {
+      const num = +f.slice(0, 4)
+      if (path.extname(f) === '.sketch' && num > 0 && num > 400 && num < 501) {
+        files.push(dir + f)
+        if (files.length >= 10 || num == 500) {
+          try {
+            await page.evaluate(() => {
+              HTMLInputElement.prototype.click = () => {}
+            })
+            await page.waitForSelector('.project_header_title_action')
+            const btnUp = (
+              await page.$$('.project_header_title_action .m-button--secondary')
+            )?.[1]
+            await btnUp?.click()
+            await page.waitForSelector('#skupload')
+            const $upBtn = await page.$('input[id="skupload"]')
+            await $upBtn?.uploadFile(...files)
+            await page.waitForSelector('.import_panel .m-button__content')
+            await page.waitForFunction(
+              'document.querySelector(".import_panel .m-button__content").innerText.includes("导入完成")'
+            )
+            await page.click('.import_panel .m-button--secondary')
+            await page.waitForSelector('.import_panel')
+            files = []
+            page.goto('https://mastergo.com/files/drafts')
+            console.log(`upload to ${num}`)
+          } catch (e) {
+            // 捕捉不到就把文件记录下来
+            await fs.appendFile(reportFile, `${f} , [ error ] ${e}\n`)
+            console.log('error : ' + f, e)
+          }
+        }
+      }
+    }
   }
 }

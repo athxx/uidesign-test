@@ -4,3 +4,5 @@ performances/
 .test-url.json
 .auth.json
 .idea
+*.log
+*.csv
