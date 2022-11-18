@@ -7,3 +7,4 @@ performances/
 *.log
 *.csv
 report/
+*-lock.*
