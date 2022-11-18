@@ -42,19 +42,10 @@ async function runMoveForSelectShapes({
 
 export async function testMoveSelectAll(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap,
+  { mastergo, jsDesigner, figma, pixso }: DriverMap,
   options: MoveSelectAllOptions = { mousemoveDelta: 10, mousemoveSteps: 30 }
 ) {
   const file = getTestFile(filename)
-
-  if (soulma) {
-    await runMoveSelectAll({
-      driver: soulma,
-      url: file.soulma,
-      testName: 'soulma',
-      options,
-    })
-  }
 
   if (mastergo) {
     await runMoveSelectAll({
@@ -65,11 +56,11 @@ export async function testMoveSelectAll(
     })
   }
 
-  if (xiaopiu) {
+  if (jsDesigner) {
     await runMoveSelectAll({
-      driver: xiaopiu,
-      url: file.xiaopiu,
-      testName: 'xiaopiu',
+      driver: jsDesigner,
+      url: file.jsDesigner,
+      testName: 'jsDesigner',
       options,
     })
   }
@@ -88,15 +79,6 @@ export async function testMoveSelectAll(
       driver: pixso,
       url: file.pixso,
       testName: 'pixso',
-      options,
-    })
-  }
-
-  if (local) {
-    await runMoveSelectAll({
-      driver: local,
-      url: file.local,
-      testName: 'local',
       options,
     })
   }
@@ -104,19 +86,10 @@ export async function testMoveSelectAll(
 
 export async function testMoveForSelectShapes(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap,
+  { mastergo, jsDesigner, figma, pixso }: DriverMap,
   options: MoveSelectAllOptions = { mousemoveDelta: 10, mousemoveSteps: 0 }
 ) {
   const file = getTestFile(filename)
-
-  if (soulma) {
-    await runMoveForSelectShapes({
-      driver: soulma,
-      url: file.soulma,
-      testName: 'soulma',
-      options,
-    })
-  }
 
   if (mastergo) {
     await runMoveForSelectShapes({
@@ -127,11 +100,11 @@ export async function testMoveForSelectShapes(
     })
   }
 
-  if (xiaopiu) {
+  if (jsDesigner) {
     await runMoveForSelectShapes({
-      driver: xiaopiu,
-      url: file.xiaopiu,
-      testName: 'xiaopiu',
+      driver: jsDesigner,
+      url: file.jsDesigner,
+      testName: 'jsDesigner',
       options,
     })
   }
@@ -150,15 +123,6 @@ export async function testMoveForSelectShapes(
       driver: pixso,
       url: file.pixso,
       testName: 'pixso',
-      options,
-    })
-  }
-
-  if (local) {
-    await runMoveForSelectShapes({
-      driver: local,
-      url: file.local,
-      testName: 'local',
       options,
     })
   }

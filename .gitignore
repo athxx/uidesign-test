@@ -6,3 +6,4 @@ performances/
 .idea
 *.log
 *.csv
+report/

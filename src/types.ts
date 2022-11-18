@@ -6,10 +6,8 @@ export enum TestCase {
 }
 
 export enum Product {
-  soulma = 'soulma',
   mastergo = 'mastergo',
-  xiaopiu = 'xiaopiu',
+  jsDesigner = 'jsDesigner',
   figma = 'figma',
   pixso = 'pixso',
-  local = 'local',
 }

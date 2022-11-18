@@ -1,5 +1,5 @@
 {
-  "name": "soulma-performance-diffs",
+  "name": "ui-performance-diffs",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install",
     "format": "prettier src --write",
-    "lint-staged": "lint-staged",
     "dev": "tsc --watch",
     "build": "tsc"
   },
@@ -25,13 +24,7 @@
   "devDependencies": {
     "@types/node": "^16.11.12",
     "@types/prompts": "^2.0.14",
-    "husky": "^7.0.0",
     "lint-staged": "^12.1.2",
     "prettier": "^2.5.1"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "prettier --write"
-    ]
   }
 }

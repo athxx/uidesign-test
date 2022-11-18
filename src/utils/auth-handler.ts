@@ -14,16 +14,13 @@ if (!existsSync(authPath)) {
 const authData: AuthData = require('../../.auth.json')
 
 interface AuthData {
-  soulma: {
-    token: string
-  }
   mastergo: {
     account: {
       name: string
       password: string
     }
   }
-  xiaopiu: {
+  jsDesigner: {
     cookie: string
   }
   figma: {
@@ -37,9 +34,6 @@ interface AuthData {
       name: string
       password: string
     }
-  }
-  local: {
-    token: string
   }
   [key: string]: any
 }
@@ -69,15 +63,6 @@ export const authStorage = {
 }
 
 export const authConfirmer = {
-  async askForSoulma(): Promise<string> {
-    const { value } = await prompts({
-      type: 'text',
-      name: 'value',
-      message: `Input token for soulma(check "XK-Token" in localStorage):`,
-    })
-
-    return value
-  },
 
   async askForMastergo(): Promise<{ name: string; password: string }> {
     const { name } = await prompts({
@@ -98,16 +83,16 @@ export const authConfirmer = {
     }
   },
 
-  async askForXiaopiu(): Promise<{ name: string; password: string }> {
+  async askForJsDesigner(): Promise<{ name: string; password: string }> {
     const { name } = await prompts({
       type: 'text',
       name: 'name',
-      message: `Input username for xiaopiu:`,
+      message: `Input username for jsDesigner:`,
     })
     const { password } = await prompts({
       type: 'password',
       name: 'password',
-      message: 'Input password for xiaopiu:',
+      message: 'Input password for jsDesigner:',
     })
 
     return {
@@ -151,26 +136,10 @@ export const authConfirmer = {
       password,
     }
   },
-
-  async askForLocal(): Promise<string> {
-    const { value } = await prompts({
-      type: 'text',
-      name: 'value',
-      message: `Input token for local(check "XK-Token" in localStorage):`,
-    })
-
-    return value
-  },
 }
 
 export async function configAuth(products: Product[]) {
   const authData = authStorage.get()
-
-  if (!authData.soulma && products.includes(Product.soulma)) {
-    const token = await authConfirmer.askForSoulma()
-
-    authStorage.setAuthData('soulma', { token })
-  }
 
   if (!authData.mastergo && products.includes(Product.mastergo)) {
     const { name, password } = await authConfirmer.askForMastergo()
@@ -178,10 +147,10 @@ export async function configAuth(products: Product[]) {
     authStorage.setAuthData('mastergo', { account: { name, password } })
   }
 
-  if (!authData.xiaopiu && products.includes(Product.xiaopiu)) {
-    const { name, password } = await authConfirmer.askForXiaopiu()
+  if (!authData.jsDesigner && products.includes(Product.jsDesigner)) {
+    const { name, password } = await authConfirmer.askForJsDesigner()
 
-    authStorage.setAuthData('xiaopiu', { account: { name, password } })
+    authStorage.setAuthData('jsDesigner', { account: { name, password } })
   }
 
   if (!authData.figma && products.includes(Product.figma)) {
@@ -194,12 +163,6 @@ export async function configAuth(products: Product[]) {
     const { name, password } = await authConfirmer.askForPixso()
 
     authStorage.setAuthData('pixso', { account: { name, password } })
-  }
-
-  if (!authData.local && products.includes(Product.local)) {
-    const token = await authConfirmer.askForLocal()
-
-    authStorage.setAuthData('local', { token })
   }
 
   return authStorage.write()

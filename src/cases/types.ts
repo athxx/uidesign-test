@@ -1,16 +1,13 @@
 import {
-  SoulmaDriver,
   MastergoDriver,
-  XiaopiuDriver,
+  JsDesignerDriver,
   FigmaDriver,
   PixsoDriver,
 } from '../drivers/index'
 
 export type DriverMap = Partial<{
-  soulma: SoulmaDriver
   mastergo: MastergoDriver
-  xiaopiu: XiaopiuDriver
+  jsDesigner: JsDesignerDriver
   figma: FigmaDriver
   pixso: PixsoDriver
-  local: SoulmaDriver
 }>

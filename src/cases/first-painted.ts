@@ -45,18 +45,10 @@ async function runFirstPainted({
 
 export async function testCanvasFirstPainted(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap
+  { mastergo, jsDesigner, figma, pixso }: DriverMap
 ) {
   // options?: { runTimes: number }
   const file = getTestFile(filename)
-
-  if (soulma) {
-    await runFirstPainted({
-      driver: soulma,
-      url: file.soulma,
-      testName: 'soulma',
-    })
-  }
 
   if (mastergo) {
     await runFirstPainted({
@@ -66,11 +58,11 @@ export async function testCanvasFirstPainted(
     })
   }
 
-  if (xiaopiu) {
+  if (jsDesigner) {
     await runFirstPainted({
-      driver: xiaopiu,
-      url: file.xiaopiu,
-      testName: 'xiaopiu',
+      driver: jsDesigner,
+      url: file.jsDesigner,
+      testName: 'jsDesigner',
     })
   }
 
@@ -87,14 +79,6 @@ export async function testCanvasFirstPainted(
       driver: pixso,
       url: file.pixso,
       testName: 'pixso',
-    })
-  }
-
-  if (local) {
-    await runFirstPainted({
-      driver: local,
-      url: file.local,
-      testName: 'local',
     })
   }
 }

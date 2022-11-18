@@ -4,10 +4,9 @@ import { configAuth, authStorage } from './utils/auth-handler'
 import {
   DriverOptions,
   PixsoDriver,
-  SoulmaDriver,
   MastergoDriver,
   FigmaDriver,
-  XiaopiuDriver,
+  JsDesignerDriver,
   TestDriver,
 } from './drivers/index'
 import { Product } from './types'
@@ -17,19 +16,17 @@ import { DriverMap } from './cases/types'
 import fs from 'fs/promises'
 
 const products: string[] = [
-  Product.soulma,
   Product.mastergo,
-  Product.xiaopiu,
+  Product.jsDesigner,
   Product.figma,
   Product.pixso,
 ]
 
 const Drivers = {
-  [Product.soulma]: SoulmaDriver,
   [Product.mastergo]: MastergoDriver,
   [Product.figma]: FigmaDriver,
   [Product.pixso]: PixsoDriver,
-  [Product.xiaopiu]: XiaopiuDriver,
+  [Product.jsDesigner]: JsDesignerDriver,
 }
 
 async function getDriver(
@@ -42,13 +39,6 @@ async function getDriver(
       height: 1080,
     },
     timeout: 180000,
-  }
-  if (driverName === 'soulma') {
-    return new SoulmaDriver({
-      browser,
-      token: authStorage.get()[driverName].token,
-      options: opt,
-    })
   }
 
   // @ts-ignore
@@ -71,7 +61,7 @@ async function main() {
   ) {
     console.log(
       'error: missing required argument platform \n\n' +
-        '[ Platform Options ] : soulma, figma, mastergo, pixso, xiaopiu\n' +
+        '[ Platform Options ] : figma, mastergo, pixso, jsDesigner\n' +
         '[ Sketch Directory ] : E:/sketchs/'
     )
     return

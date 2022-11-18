@@ -21,17 +21,9 @@ async function runTestWheelZoom({
 
 export async function testWheelZoom(
   filename: string,
-  { soulma, mastergo, xiaopiu, figma, pixso, local }: DriverMap
+  { mastergo, jsDesigner, figma, pixso }: DriverMap
 ) {
   const file = getTestFile(filename)
-
-  if (soulma) {
-    await runTestWheelZoom({
-      driver: soulma,
-      url: file.soulma,
-      testName: 'soulma',
-    })
-  }
 
   if (mastergo) {
     await runTestWheelZoom({
@@ -41,11 +33,11 @@ export async function testWheelZoom(
     })
   }
 
-  if (xiaopiu) {
+  if (jsDesigner) {
     await runTestWheelZoom({
-      driver: xiaopiu,
-      url: file.xiaopiu,
-      testName: 'xiaopiu',
+      driver: jsDesigner,
+      url: file.jsDesigner,
+      testName: 'jsDesigner',
     })
   }
 
@@ -62,14 +54,6 @@ export async function testWheelZoom(
       driver: pixso,
       url: file.pixso,
       testName: 'pixso',
-    })
-  }
-
-  if (local) {
-    await runTestWheelZoom({
-      driver: local,
-      url: file.local,
-      testName: 'local',
     })
   }
 }

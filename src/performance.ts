@@ -1,9 +1,8 @@
 import puppeteer from 'puppeteer'
 import { program } from 'commander'
 import {
-  SoulmaDriver,
   MastergoDriver,
-  XiaopiuDriver,
+  JsDesignerDriver,
   FigmaDriver,
   PixsoDriver,
   DriverOptions,
@@ -37,12 +36,10 @@ const testingCases = [
   TestCase.wheelZoom,
 ]
 const products = [
-  Product.soulma,
   Product.mastergo,
-  Product.xiaopiu,
+  Product.jsDesigner,
   Product.figma,
   Product.pixso,
-  Product.local,
 ]
 const filterProducts = (str: string): Product[] => {
   return str
@@ -91,22 +88,16 @@ async function configEditUrl(filename: string, products: Product[]) {
 }
 
 async function configEditAuth(products: Product[]) {
-  if (products.includes(Product.soulma)) {
-    const token = await authConfirmer.askForSoulma()
-
-    authStorage.setAuthData('soulma', { token })
-  }
-
   if (products.includes(Product.mastergo)) {
     const { name, password } = await authConfirmer.askForMastergo()
 
     authStorage.setAuthData('mastergo', { account: { name, password } })
   }
 
-  if (products.includes(Product.xiaopiu)) {
-    const { name, password } = await authConfirmer.askForXiaopiu()
+  if (products.includes(Product.jsDesigner)) {
+    const { name, password } = await authConfirmer.askForJsDesigner()
 
-    authStorage.setAuthData('xiaopiu', { account: { name, password } })
+    authStorage.setAuthData('jsDesigner', { account: { name, password } })
   }
 
   if (products.includes(Product.figma)) {
@@ -119,12 +110,6 @@ async function configEditAuth(products: Product[]) {
     const { name, password } = await authConfirmer.askForPixso()
 
     authStorage.setAuthData('pixso', { account: { name, password } })
-  }
-
-  if (products.includes(Product.local)) {
-    const token = await authConfirmer.askForLocal()
-
-    authStorage.setAuthData('local', { token })
   }
 
   return authStorage.write()
@@ -165,20 +150,10 @@ async function run(filename: string, options: ProgramOptions) {
   const testingCases = options.tests
   const authData = authStorage.get()
 
-  let soulma: SoulmaDriver | undefined
   let mastergo: MastergoDriver | undefined
-  let xiaopiu: XiaopiuDriver | undefined
+  let jsDesigner: JsDesignerDriver | undefined
   let figma: FigmaDriver | undefined
   let pixso: PixsoDriver | undefined
-  let local: SoulmaDriver | undefined
-
-  if (authData.soulma) {
-    soulma = new SoulmaDriver({
-      browser,
-      token: authData.soulma.token,
-      options: testingOptions,
-    })
-  }
 
   if (authData.mastergo) {
     mastergo = new MastergoDriver({
@@ -189,11 +164,11 @@ async function run(filename: string, options: ProgramOptions) {
     })
   }
 
-  if (authData.xiaopiu) {
-    xiaopiu = new XiaopiuDriver({
+  if (authData.jsDesigner) {
+    jsDesigner = new JsDesignerDriver({
       browser,
-      name: authData.xiaopiu.account.name,
-      password: authData.xiaopiu.account.password,
+      name: authData.jsDesigner.account.name,
+      password: authData.jsDesigner.account.password,
       options: testingOptions,
     })
   }
@@ -216,25 +191,11 @@ async function run(filename: string, options: ProgramOptions) {
     })
   }
 
-  if (authData.local) {
-    local = new SoulmaDriver({
-      browser,
-      token: authData.local.token,
-      options: testingOptions,
-      host: 'localhost',
-      protocol: 'http:',
-      port: 8080,
-      filePrefix: 'local',
-    })
-  }
-
   const productsMap = {
-    soulma,
     mastergo,
-    xiaopiu,
+    jsDesigner,
     figma,
     pixso,
-    local,
   }
   const drivers = filterProducts(options.products).reduce((acc, curr) => {
     const fileUrl = urlStorage.get(filename)[curr]
